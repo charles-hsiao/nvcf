@@ -27,9 +27,12 @@ import (
 	promtestutil "github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	nvcametrics "github.com/dsx-ai-factory/nvcf/src/compute-plane-services/nvca/internal/metrics"
+	"github.com/dsx-ai-factory/nvcf/src/compute-plane-services/nvca/internal/util/k8sutil"
 	nvcastorage "github.com/dsx-ai-factory/nvcf/src/compute-plane-services/nvca/pkg/storage"
+	nvcatypes "github.com/dsx-ai-factory/nvcf/src/compute-plane-services/nvca/pkg/types"
 )
 
 func TestGetDefaultWorkloadContainerNamesToWatch(t *testing.T) {
@@ -111,4 +114,30 @@ func TestReportPodCrashAndRestartMetrics(t *testing.T) {
 		assert.Equal(t, 0, promtestutil.CollectAndCount(metrics.ContainerCrashTotal))
 		assert.Equal(t, 0, promtestutil.CollectAndCount(metrics.ContainerRestartTotal))
 	})
+}
+
+func TestPodCrashesReportableCoversHAUtilsPods(t *testing.T) {
+	utilsEnv := []corev1.EnvVar{{Name: k8sutil.InstanceIDEnvKey, Value: "sr-abc-miniservice"}}
+	mk := func(name, ns string, withStatus bool, containers []corev1.Container) *corev1.Pod {
+		p := &corev1.Pod{
+			ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: ns, Labels: map[string]string{nvcatypes.ICMSRequestIDKey: "req"}},
+			Spec:       corev1.PodSpec{Containers: containers},
+		}
+		if withStatus {
+			p.Status.ContainerStatuses = []corev1.ContainerStatus{{Name: "c"}}
+		}
+		return p
+	}
+	utilsContainer := []corev1.Container{{Name: "utils", Env: utilsEnv}}
+	web := []corev1.Container{{Name: "web"}}
+
+	assert.True(t, podCrashesReportable(mk("utils", "sr-abc", true, utilsContainer)), "the bare utils pod")
+	assert.True(t, podCrashesReportable(mk("utils-7d9f8-x2k4q", "sr-abc", true, utilsContainer)), "an HA utils replica")
+	assert.True(t, podCrashesReportable(mk("nvcf-smb-server", "sr-abc", true, web)))
+	assert.True(t, podCrashesReportable(mk("anything", "nvcf-backend", true, web)))
+	assert.False(t, podCrashesReportable(mk("web-0", "sr-abc", true, web)), "a chart pod with the request label is skipped")
+	assert.False(t, podCrashesReportable(mk("utils-7d9f8-x2k4q", "sr-abc", false, utilsContainer)), "no container statuses yet")
+	noLabel := mk("web-0", "sr-abc", true, web)
+	noLabel.Labels = nil
+	assert.True(t, podCrashesReportable(noLabel), "pods outside tracking keep reporting as before")
 }

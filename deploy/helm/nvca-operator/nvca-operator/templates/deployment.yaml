@@ -279,6 +279,20 @@ spec:
           - --nvca-worker-container-restart-count-to-fail-instance
           - {{ .Values.agent.workerContainerRestartCountToFailInstance | int | quote }}
           {{- end }}
+          {{- with ((.Values.agent).utilsProvenance) }}
+          {{- if and .mode (ne .mode "audit") }}
+          - --utils-provenance-mode
+          - {{ .mode | quote }}
+          {{- end }}
+          {{- if .replicaSetControllerUser }}
+          - --utils-provenance-replicaset-controller-user
+          - {{ .replicaSetControllerUser | quote }}
+          {{- end }}
+          {{- if .deploymentControllerUser }}
+          - --utils-provenance-deployment-controller-user
+          - {{ .deploymentControllerUser | quote }}
+          {{- end }}
+          {{- end }}
           {{- if and ((.Values.agent).secretMirrorLabelSelector) ((.Values.agent).secretMirrorNamespace) }}
           - --nvca-secret-mirror-source-namespace
           - "{{ .Values.agent.secretMirrorNamespace }}"

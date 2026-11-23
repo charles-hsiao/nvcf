@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/dsx-ai-factory/nvcf/src/libraries/go/lib/pkg/core"
@@ -165,6 +166,14 @@ func startControllerManagerForAgent(
 		}
 	}
 
+	// Prove the provenance webhook is enforcing, and that no instance account can scale utils objects, before anything
+	// trusts the utils label or creates more than one utils pod, and that the post-enforcement inventory is clear. The
+	// gate fails closed: with no checker (audit mode) it is nil, which refuses.
+	provenanceGate, err := addUtilsProvenanceReadiness(ctx, mgr, clients.K8s, metrics, a.SystemNamespace)
+	if err != nil {
+		return fmt.Errorf("add utils provenance readiness check: %w", err)
+	}
+
 	log.Info("Starting MiniService controller")
 	k8sVersion, err := resolveK8sVersion(ctx, a.K8sVersion, a.backendk8scache.clients.DiscoveryClient)
 	if err != nil {
@@ -212,6 +221,10 @@ func startControllerManagerForAgent(
 			CustomAnnotations:          a.backendk8scache.customAnnotations,
 			Kartas:                     kartas,
 			NsightProfilingAllowlist:   a.backendk8scache.nsightProfilingAllowlist,
+			UtilsProvenanceMode:        os.Getenv(types.UtilsProvenanceModeEnv),
+			UtilsProvenanceGate:        provenanceGate,
+			UtilsReplicas:              utilsReplicasFromEnv(log),
+			UtilsHAEnabled:             os.Getenv(types.UtilsHAEnabledEnv) == "true",
 		},
 	); err != nil {
 		log.WithError(err).Error("Failed to create miniservice controller")
