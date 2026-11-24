@@ -86,16 +86,24 @@ Record the restore boot time and check the running services before reading the p
 1. Require every retained node to become Ready.
    Require each kubelet lease renewal to occur after the restore boot time.
 2. Require actual stateful Pod readiness and the expected member placement.
-   For an OnDelete StatefulSet, use Pod readiness or the StatefulSet's ready replica count.
-   `kubectl rollout status` does not support that strategy.
+   Treat saved Pod status and ready replica counts as hints, not runtime health evidence.
+   Use the service checks below after Pod readiness.
+   `kubectl rollout status` does not support OnDelete StatefulSets.
 3. Require three Cassandra UN members and a successful authenticated CQL read.
    Gossip membership can recover before the CQL port accepts connections.
    Retain failed transport observations and use a bounded startup deadline.
    Authentication failures or cohort mismatches stop the test.
-4. Compare the paused data, RF/DC mappings and native NATS configurations before resuming application writers.
-5. Require the injector to become Ready.
+4. Check every NATS member through its live health and JetStream monitoring endpoints after the restore boot time.
+   Require three distinct serving members and the expected JetStream metadata quorum.
+   Require the original stream and durable-consumer configurations and the declared drained state.
+5. Check every OpenBao member through its live health and leader endpoints after the restore boot time.
+   Require initialized, unsealed members in the original cluster, with one active leader and three Raft voters.
+   Check the original JWT mounts, JWKS and JWT issuance.
+   Do not resume application writers until all NATS and OpenBao member checks pass.
+6. Compare the paused data, RF/DC mappings and native NATS configurations before resuming application writers.
+7. Require the injector to become Ready.
    Check that a server-side Pod dry run produces the expected injected init container before starting consumers.
-6. Check fresh compute kubelet leases and actual original HTTP/gRPC calls after compute recovery.
+8. Check fresh compute kubelet leases and actual original HTTP/gRPC calls after compute recovery.
    After restoring deployment minimums, require actual worker readiness before invoking the original functions.
    An ACTIVE API status alone does not establish a worker connection.
    Retain startup transport failures and use a bounded retry deadline.
