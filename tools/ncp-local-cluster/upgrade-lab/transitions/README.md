@@ -93,6 +93,15 @@ identities. This observation does not establish distributed archive contents.
 
 ## Findings and remaining work
 
+Execution gates remain in force for each intended deployment profile:
+
+| Item | Reconciliation decision and execution gate |
+| --- | --- |
+| OpenBao/JWT | Selected plugin bytes match and scoped catalog/key/mount/member checks passed. Require matching runtime lifecycle evidence for the intended profile before enabling execution. |
+| NATS | Control-plane server/reloader versions do not decrease. The repository change and drained-memory recovery profile have scoped evidence. Require storage/stream/consumer checks for each profile. Nonempty memory recovery remains unsupported. |
+| cert-manager | All three inventories select chart 0.1.0 and images v1.20.2. No numerical downgrade occurs. Intended-profile CRD, webhook and certificate behavior still requires qualification before execution. |
+| Stack 1.0.4 peers | Retain exact stack 1.0.4 with compute 1.0.5 and Observability 1.0.0. Scoped source/target and mixed checks passed. This does not substitute stack 1.0.10 or grant broader compatibility. |
+
 The [runtime prerequisite report](runtime-prerequisites.md) covers effective
 NVCT helper images omitted from the source inventory, callback routing,
 native task completion and intermediate Observability selection. The

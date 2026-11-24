@@ -35,21 +35,62 @@ compares each `sis_api.instances` row's `deployment_id` and
 fills null fields from that request. It does not repair conflicting non-null
 fields. A missing request is accepted only for a terminated instance.
 
-1. Preserve the original instances, requests and workload identities. Record
+1. Preserve instance, request and workload identities. Record
    the source runtime image digest, pod UID and installation history.
 2. Pause affected source writers for the final comparison. Do not delete
    instances or requests to make the check pass.
-3. On SIS 0.7.6, set `ICMS_INSTANCE_LOOKUP_BACKFILL_TASK_MODE` through the
+3. Identify the retained instances that require target lookups. Require a
+   non-null deployment ID in each authoritative request used for deployment
+   lookup. Apply the same check to GPU-spec IDs where that lookup is required.
+   Missing authoritative IDs require a reviewed repair before proceeding.
+4. On SIS 0.7.6, set `ICMS_INSTANCE_LOOKUP_BACKFILL_TASK_MODE` through the
    native `sis.env` values. Use `MIGRATE` only when null fields need repair.
+   Follow the partial-run recovery rules below if that scan fails.
    Then use `VALIDATE` and wait for a completed scan from the expected pod.
-4. Require `missingRequest=0`, `mismatched=0` and `failed=0`. Save all counters,
+5. Independently compare the required lookup IDs in instances and requests.
+   Require non-null, matching IDs for each required lookup. Record the count
+   of required rows with null IDs and require zero. `VALIDATE` uses null-safe
+   equality, so two null values can count as current. Zero native error
+   counters alone do not satisfy this check. Record any excluded terminal
+   rows and why the target does not require their lookup.
+6. Require `missingRequest=0`, `mismatched=0` and `failed=0`. Save all counters,
    including `scanned`, `current` and `skippedTerminated`. Reconcile the scan
    with the retained workload cohort. An empty scan does not exercise legacy
    data migration.
-5. Bind the result to task mode, image digest, pod UID, scan timestamps and
+7. Bind the result to task mode, image digest, pod UID, scan timestamps and
    the data epoch. Restore, a changed pod or subsequent inconsistent writes
    require a new matching result. Keep the writer pause until the backup
    captures that verified state.
+
+## Partial MIGRATE recovery
+
+The selected SIS 0.7.6 task commits each repaired row independently. A failed
+scan can leave completed repairs. There is no transaction-wide rollback.
+Preserve row and workload identities and existing non-null values. The repair
+intentionally replaces null lookup fields with authoritative request values.
+
+After a partial or failed scan, set the native task mode to `DISABLED`.
+Wait for the previous execution to stop. Keep other affected writers paused.
+Save available summaries and compare the current instance/request cohort.
+Permit another `MIGRATE` run only when all these conditions hold:
+
+- The same released SIS 0.7.6 task remains selected.
+- Authoritative requests remain unchanged from the recorded pre-repair cohort.
+- Each remaining null field has a non-null authoritative request value.
+- No non-null value conflicts with its request, no live request is missing,
+  and no unexpected data changes occurred.
+
+Under these conditions, repeat the same null-only `MIGRATE`, then `VALIDATE`.
+Repeat the independent null checks and cohort comparison. Existing completed
+repairs remain in place. Failed reads, changed requests, conflicts or unknown
+writes block a rerun until the migration owner defines a reviewed repair.
+Do not delete rows or recreate workloads to clear that block.
+
+Create the consistent backup only after every source-data check passes.
+That backup captures the repaired state. It cannot restore the pre-repair null
+values. A restore or changed data epoch invalidates earlier completion evidence.
+
+## Route boundaries
 
 For stack 1.0.4 to 1.1.5, this is a source prerequisite: finish it before the
 backup and before replacing SIS 0.7.6. The source already has the capability;

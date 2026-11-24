@@ -77,6 +77,27 @@ func inventoryComponents(invs map[string]inventory) (map[string]component, error
 	return components, nil
 }
 
+func alignComponentVariants(from, to map[string]component) {
+	endpoints := []map[string]component{from, to}
+	variants := map[string]bool{}
+	for _, components := range endpoints {
+		for key, c := range components {
+			base := strings.Join([]string{c.Plane, c.Consumer, c.Type, c.Name}, "/")
+			if key != base {
+				variants[base] = true
+			}
+		}
+	}
+	for _, components := range endpoints {
+		for base := range variants {
+			if c, exists := components[base]; exists {
+				delete(components, base)
+				components[base+"/variant/"+c.Reference] = c
+			}
+		}
+	}
+}
+
 // Compare only matching version families. Different suffixes require review;
 // guessing their ordering would conceal repository or packaging changes.
 var plainVersion = regexp.MustCompile(`^v?([0-9]+)\.([0-9]+)\.([0-9]+)(.*)$`)
@@ -88,6 +109,17 @@ func compareVersion(a, b string) (int, bool) {
 	x, y := plainVersion.FindStringSubmatch(a), plainVersion.FindStringSubmatch(b)
 	if x == nil || y == nil {
 		return 0, false
+	}
+	suffixOrder := 0
+	if x[4] != y[4] {
+		if !strings.HasPrefix(x[4], "-nv-") || !strings.HasPrefix(y[4], "-nv-") {
+			return 0, false
+		}
+		var known bool
+		suffixOrder, known = compareVersion(strings.TrimPrefix(x[4], "-nv-"), strings.TrimPrefix(y[4], "-nv-"))
+		if !known {
+			return 0, false
+		}
 	}
 	for i := 1; i <= 3; i++ {
 		xv, xe := strconv.ParseUint(x[i], 10, 64)
@@ -102,13 +134,7 @@ func compareVersion(a, b string) (int, bool) {
 			return 1, true
 		}
 	}
-	if x[4] == y[4] {
-		return 0, true
-	}
-	if strings.HasPrefix(x[4], "-nv-") && strings.HasPrefix(y[4], "-nv-") {
-		return compareVersion(strings.TrimPrefix(x[4], "-nv-"), strings.TrimPrefix(y[4], "-nv-"))
-	}
-	return 0, false
+	return suffixOrder, true
 }
 func compareRoute(lock artifactLock, r routeContract, in map[string]map[string]inventory) (auditReport, error) {
 	report := auditReport{ComparisonScope: "release-inventories", ArtifactLockSHA256: lock.SHA256, ContractSHA256: r.SHA256, Summary: auditSummary{Route: r.ID, Qualification: "unqualified"}, ExecutionBlockers: r.ExecutionBlockers, ConditionalChecks: r.ConditionalChecks, RuntimeArtifactChecks: r.RuntimeArtifactChecks}
@@ -127,6 +153,7 @@ func compareRoute(lock artifactLock, r routeContract, in map[string]map[string]i
 	if err != nil {
 		return report, err
 	}
+	alignComponentVariants(from, to)
 	keys := map[string]bool{}
 	for k := range from {
 		keys[k] = true

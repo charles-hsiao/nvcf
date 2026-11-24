@@ -151,3 +151,54 @@ func TestRecoveryCLIRecordsCheckpointWithoutQualifyingRoute(t *testing.T) {
 		}
 	}
 }
+
+func TestRecoveryRequiresTheCompleteQueueRegion(t *testing.T) {
+	for _, tc := range []struct {
+		name, region, queueRegion string
+		valid                     bool
+	}{
+		{"matching", "test", "test", true},
+		{"matching-underscore", "test_other", "test_other", true},
+		{"shared-prefix", "test", "test_other", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			baseline, checkpoint, route, lock, _, now := recoveryFixture(t)
+			rename := func(streams []recoveryStream) {
+				for i := range streams {
+					s := &streams[i]
+					switch {
+					case strings.HasPrefix(s.Name, "requestToFunctionVersion_"):
+						s.Name = "requestToFunctionVersion_" + tc.region
+					case strings.HasPrefix(s.Name, "stateful_session_lookup_"):
+						s.Name = "stateful_session_lookup_" + tc.region
+					case strings.HasPrefix(s.Name, "rq_"):
+						s.Name = "rq_" + tc.queueRegion + "_" + strings.TrimPrefix(s.Name, "rq_test_")
+					}
+					s.Config["name"] = s.Name
+					for j := range s.Consumers {
+						c := &s.Consumers[j]
+						c.Stream, c.Name = s.Name, s.Name+"_consumer"
+						c.Config["durable_name"] = c.Name
+					}
+				}
+			}
+			rename(baseline.Streams)
+			for i := range checkpoint.Samples {
+				rename(checkpoint.Samples[i].Streams)
+			}
+			raw, err := json.Marshal(baseline)
+			if err != nil {
+				t.Fatal(err)
+			}
+			digest := checksum(raw)
+			checkpoint.BaselineSHA256 = digest
+			err = validateRecoveryCheckpoint(baseline, checkpoint, route, lock, digest, now)
+			if tc.valid && err != nil {
+				t.Fatal(err)
+			}
+			if !tc.valid && (err == nil || !strings.Contains(err.Error(), "queue region")) {
+				t.Fatalf("accepted a queue from a different complete region: %v", err)
+			}
+		})
+	}
+}

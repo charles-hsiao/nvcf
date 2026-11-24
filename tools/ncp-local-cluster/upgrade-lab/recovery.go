@@ -66,7 +66,7 @@ type recoveryCheckpoint struct {
 	Samples []recoverySample `json:"samples"`
 }
 
-var recoveryQueueName = regexp.MustCompile(`^rq_[a-z0-9_-]+_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
+var recoveryQueueName = regexp.MustCompile(`^rq_([a-z0-9_-]+)_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 
 func recoveryStreamsByName(streams []recoveryStream) (map[string]recoveryStream, error) {
 	byName := map[string]recoveryStream{}
@@ -141,7 +141,7 @@ func validateRecoveryCheckpoint(baseline recoveryInventory, checkpoint recoveryC
 		}
 	}
 	for name := range expected {
-		if recoveryQueueName.MatchString(name) && !strings.HasPrefix(name, "rq_"+region+"_") {
+		if match := recoveryQueueName.FindStringSubmatch(name); len(match) > 0 && match[1] != region {
 			return errors.New("function queue region differs from the recovery profile")
 		}
 	}

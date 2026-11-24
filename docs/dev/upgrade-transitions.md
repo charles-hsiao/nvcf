@@ -131,6 +131,10 @@ failures. Stack 1.0.1's SIS 0.7.2 needs a direct source row/request comparison
 because it has no such task. Preserve the verified data epoch through backup.
 These checks are separate from Cassandra schema migrations and target
 postconditions.
+Also require independent non-null IDs for every required target lookup.
+Native `VALIDATE` can treat two null values as equal. For partial `MIGRATE`
+runs, use the documented null-only rerun rules before repeating validation
+and creating the consistent backup.
 
 | Transition | Required comparison and checks |
 | --- | --- |

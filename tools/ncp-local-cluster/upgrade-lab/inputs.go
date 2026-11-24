@@ -130,6 +130,7 @@ func loadLock(path string) (artifactLock, error) {
 		matrices[m.Edition] = m
 	}
 	seen := map[string]bool{}
+	inventories := map[string]stackRef{}
 	for _, s := range lock.Selections {
 		if s.Version == "" || seen[s.Version] || len(s.Stacks) != 3 {
 			return lock, errors.New("invalid or duplicate selection")
@@ -152,6 +153,11 @@ func loadLock(path string) (artifactLock, error) {
 			if p != "control-plane" && v.Version != matrix.Stacks[p] {
 				return lock, fmt.Errorf("peer stack %s for %s differs from docs matrix %s", p, s.Version, matrix.Edition)
 			}
+			name := inventoryName(p, v)
+			if previous, exists := inventories[name]; exists && previous != v {
+				return lock, fmt.Errorf("conflicting inventory reference for %s", name)
+			}
+			inventories[name] = v
 		}
 	}
 	return lock, nil
@@ -177,7 +183,7 @@ func loadRoute(path, id string, lock artifactLock) (routeContract, error) {
 		return r, err
 	}
 	r.SHA256 = checksum(raw)
-	if r.SchemaVersion != 1 || r.VersionScope != "self-managed-stack" || r.ID != id || r.ID != r.From+"-to-"+r.To || r.Qualification != "unqualified" || len(r.Actions) == 0 {
+	if r.SchemaVersion != 1 || r.VersionScope != "self-managed-stack" || r.ID != id || r.ID != r.From+"-to-"+r.To || r.From == r.To || r.Qualification != "unqualified" || len(r.Actions) == 0 {
 		return r, errors.New("invalid or unsupported rehearsal contract")
 	}
 	if _, err := lock.selection(r.From); err != nil {

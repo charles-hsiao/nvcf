@@ -34,6 +34,15 @@ func TestCommittedContracts(t *testing.T) {
 			if r.From == r.To {
 				t.Fatal("route must change Self-Managed stack identity")
 			}
+			var execution struct {
+				Enabled *bool `json:"supported_execution_enabled"`
+			}
+			if err := readJSON(path, &execution); err != nil {
+				t.Fatal(err)
+			}
+			if execution.Enabled == nil || *execution.Enabled {
+				t.Fatal("committed routes must explicitly disable supported execution")
+			}
 		})
 	}
 }
@@ -130,6 +139,110 @@ func TestConsumerAndMultipleVersionComparison(t *testing.T) {
 	}
 }
 
+func TestSharedReferencesSurviveVariantCountChanges(t *testing.T) {
+	makeInventory := func(versions ...string) map[string]inventory {
+		inv := inventory{}
+		for _, version := range versions {
+			inv.Artifacts = append(inv.Artifacts, artifact{Type: "container-image", Name: "helper", Version: version, Reference: "registry.invalid/helper:" + version, Sources: []artifactSource{{Plane: "control-plane", Release: "service"}}})
+		}
+		return map[string]inventory{"control-plane": inv}
+	}
+	for _, tc := range []struct {
+		name     string
+		from, to []string
+		added    int
+		removed  int
+	}{
+		{"one-to-many", []string{"1.0.0"}, []string{"1.0.0", "2.0.0"}, 1, 0},
+		{"many-to-one", []string{"1.0.0", "2.0.0"}, []string{"1.0.0"}, 0, 1},
+		{"many-to-many", []string{"1.0.0", "2.0.0"}, []string{"1.0.0", "3.0.0"}, 1, 1},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			lock := artifactLock{Selections: []selection{{Version: "a"}, {Version: "b"}}}
+			r, err := compareRoute(lock, routeContract{From: "a", To: "b"}, map[string]map[string]inventory{"a": makeInventory(tc.from...), "b": makeInventory(tc.to...)})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if r.Summary.Added != tc.added || r.Summary.Removed != tc.removed || r.Summary.Changed != 0 {
+				t.Fatalf("variant count changes fabricated a replacement: %+v", r.Summary)
+			}
+			shared := 0
+			for _, c := range r.Components {
+				if c.Change == "unchanged" && c.From == "registry.invalid/helper:1.0.0" && c.To == c.From {
+					shared++
+				}
+			}
+			if shared != 1 {
+				t.Fatal("lost the shared reference")
+			}
+		})
+	}
+}
+
+func TestLockRejectsConflictingSharedInventories(t *testing.T) {
+	for _, field := range []string{"unchanged", "commit", "digest", "asset-id"} {
+		t.Run(field, func(t *testing.T) {
+			lock, err := loadLock("transitions/artifact-lock.json")
+			if err != nil {
+				t.Fatal(err)
+			}
+			ref := lock.Selections[1].Stacks["observability"]
+			switch field {
+			case "commit":
+				ref.Commit = strings.Repeat("a", 40)
+			case "digest":
+				ref.SHA256 = "sha256:" + strings.Repeat("a", 64)
+			case "asset-id":
+				ref.AssetID++
+			}
+			lock.Selections[1].Stacks["observability"] = ref
+			root := t.TempDir()
+			path := filepath.Join(root, "artifact-lock.json")
+			if err := writeJSON(path, lock); err != nil {
+				t.Fatal(err)
+			}
+			_, err = loadLock(path)
+			if field == "unchanged" {
+				if err != nil {
+					t.Fatal(err)
+				}
+				return
+			}
+			if err == nil || !strings.Contains(err.Error(), "conflicting inventory") {
+				t.Fatalf("accepted conflicting %s for a shared inventory: %v", field, err)
+			}
+			out := filepath.Join(root, "must-not-fetch")
+			err = run(context.Background(), []string{"fetch", "--contracts", root, "--route", "1.0.1-to-1.0.4", "--out", out})
+			if err == nil || !strings.Contains(err.Error(), "conflicting inventory") {
+				t.Fatalf("fetch did not reject the conflicting lock first: %v", err)
+			}
+			if _, err := os.Stat(out); !os.IsNotExist(err) {
+				t.Fatal("fetch created output before rejecting the conflicting lock")
+			}
+		})
+	}
+}
+
+func TestRouteRejectsUnchangedEndpoint(t *testing.T) {
+	lock, err := loadLock("transitions/artifact-lock.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var route routeContract
+	if err := readJSON("transitions/1.0.4-to-1.1.5.json", &route); err != nil {
+		t.Fatal(err)
+	}
+	route.To = route.From
+	route.ID = route.From + "-to-" + route.To
+	path := filepath.Join(t.TempDir(), "route.json")
+	if err := writeJSON(path, route); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := loadRoute(path, route.ID, lock); err == nil {
+		t.Fatal("accepted a route with identical endpoints")
+	}
+}
+
 func TestOptionalDowngradeRemainsAConditionalFinding(t *testing.T) {
 	root := "transitions"
 	lock, err := loadLock(filepath.Join(root, "artifact-lock.json"))
@@ -210,6 +323,11 @@ func TestVersionOrderingDoesNotGuessSuffixes(t *testing.T) {
 		{"1.0.0", "1.0.1", -1, true}, {"2.6.3-nv-1.3.9", "2.6.3-nv-1.3.7", 1, true},
 		{"v1.20.5", "v1.20.2", 1, true}, {"2.14.9-alpine3.22", "2.14.6-alpine3.22", 1, true},
 		{"1.0.0-alpha", "1.0.0-beta", 0, false}, {"arbitrary", "another", 0, false},
+		{"2.14.6-alpine3.22", "2.14.9-alpine3.23", 0, false},
+		{"2.14.9-alpine3.23", "2.14.6-alpine3.22", 0, false},
+		{"1.0.0-alpha", "2.0.0", 0, false},
+		{"2.6.2-nv-1.3.4", "2.6.3-nv-1.3.7", -1, true},
+		{"2.6.2-nv-unknown", "2.6.3-nv-other", 0, false},
 	} {
 		got, ok := compareVersion(tc.a, tc.b)
 		if got != tc.want || ok != tc.known {
@@ -259,10 +377,32 @@ func TestProbeRejectsUnknownPlatformAndCancellation(t *testing.T) {
 	if got := platformDigest([]byte(`[{"Descriptor":{"digest":"` + digest + `","platform":{"os":"linux","architecture":"amd64"}}}]`)); got != digest {
 		t.Fatal(got)
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
-	if err := probeRoute(ctx, routeContract{}, nil, t.TempDir(), time.Second, execute); err == nil {
-		t.Fatal("canceled audit passed")
+	inv := inventory{Artifacts: []artifact{{Type: "container-image", Name: "helper", Reference: "registry.invalid/helper:fixture", Sources: []artifactSource{{Plane: "control-plane", Release: "service", Requirement: "required"}}}}}
+	inputs := map[string]map[string]inventory{"a": {"control-plane": inv}, "b": {"control-plane": inv}}
+	for _, canceled := range []bool{false, true} {
+		t.Run(map[bool]string{false: "live", true: "canceled"}[canceled], func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			if canceled {
+				cancel()
+			}
+			calls, out := 0, t.TempDir()
+			err := probeRoute(ctx, routeContract{From: "a", To: "b"}, inputs, out, time.Second, func(context.Context, string, ...string) ([]byte, error) {
+				calls++
+				return []byte(`{"digest":"` + digest + `","platform":{"os":"linux","architecture":"amd64"}}`), nil
+			})
+			var report accessReport
+			if readErr := readJSON(filepath.Join(out, "access.json"), &report); readErr != nil {
+				t.Fatal(readErr)
+			}
+			if canceled {
+				if err == nil || calls != 0 || report.Status != "blocked" || report.Complete {
+					t.Fatalf("canceled probe executed or passed: calls=%d, report=%+v, err=%v", calls, report, err)
+				}
+			} else if err != nil || calls != 1 || report.Status != "passed" || !report.Complete {
+				t.Fatalf("valid probe did not pass: calls=%d, report=%+v, err=%v", calls, report, err)
+			}
+		})
 	}
 }
 
@@ -285,8 +425,8 @@ func TestRouteRejectsForwardDependencies(t *testing.T) {
 	if _, err := loadRoute(bad, r.ID, lock); err == nil {
 		t.Fatal("accepted dependency cycle")
 	}
-	if _, err := loadRoute(bad, "../route", lock); err == nil {
-		t.Fatal("accepted route path traversal")
+	if _, err := loadRoute(filepath.Join(t.TempDir(), "absent.json"), "../route", lock); err == nil || !strings.Contains(err.Error(), "provide an exact route ID") {
+		t.Fatalf("route ID was not rejected before file access: %v", err)
 	}
 }
 

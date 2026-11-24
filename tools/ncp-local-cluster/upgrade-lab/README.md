@@ -200,6 +200,8 @@ The existing Go tools CI discovers this module automatically. The real audit
 BDD uses existing DSL steps and needs a directory containing both routes'
 verified inputs, plus a new output directory:
 
+Return to the repository root before the following BDD commands.
+
 ```sh
 export UPGRADE_LAB=/tmp/nvcf-upgrade-lab
 export TRANSITION_CONTRACTS="$PWD/tools/ncp-local-cluster/upgrade-lab/transitions"

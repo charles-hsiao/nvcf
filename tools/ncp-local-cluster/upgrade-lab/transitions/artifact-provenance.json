@@ -19,8 +19,8 @@
         "backward": 0,
         "unordered": 0
       },
-      "contract_sha256": "sha256:973e81a37fa32f1fb4246caf9747c407f17e280d2da7e724720be7ef1e0a1bcf",
-      "component_report_sha256": "sha256:eb1cfeb6791d9cec6dd5e41785abf1036991c68d80b375d0c37642664c8b675a"
+      "contract_sha256": "sha256:0f17b9ab84ec9ba50b5081405cd4d8fc231c571b3fbfe92eed1509bc418140d5",
+      "component_report_sha256": "sha256:3f7bc7f724cc9cbbfa6c999c41dfa34f67dc602a458c886131458dde3e4e8ee9"
     },
     {
       "route": "1.0.4-to-1.1.5",
@@ -33,8 +33,8 @@
         "backward": 1,
         "unordered": 0
       },
-      "contract_sha256": "sha256:b670353326b681a85c0fd2534294dfbb486cba6c72b2521bf1ea690440c4a223",
-      "component_report_sha256": "sha256:9498ad627e5dd5a074ccff6b9fc922bd105639b7bf573a1cb5e7cec0be8f0435"
+      "contract_sha256": "sha256:34b07ac851a08aff369a028198f5f8ffb4e153ece74a00239884ac236f98c0e3",
+      "component_report_sha256": "sha256:e066987b257d0adf125bf441da0b1a2fbf2635bf1a62596c2adf53533ca1d626"
     }
   ],
   "chart_packages": [
