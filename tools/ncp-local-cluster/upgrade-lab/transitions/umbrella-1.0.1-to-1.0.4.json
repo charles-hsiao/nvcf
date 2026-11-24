@@ -1,6 +1,6 @@
 {
-  "schema_version": 1,
-  "id": "1.0.1-to-1.0.4",
+  "schema_version": 2,
+  "id": "umbrella-1.0.1-to-1.0.4",
   "from": "1.0.1",
   "to": "1.0.4",
   "qualification": "unqualified",
@@ -69,7 +69,7 @@
         "observability": "1.0.0"
       },
       {
-        "control-plane": "1.0.4",
+        "control-plane": "1.0.10",
         "compute-plane": [
           "1.0.5"
         ],
@@ -100,14 +100,14 @@
       "phase": "before-hop",
       "needs": [],
       "preconditions": [
-        "Exact Self-Managed source/target and separate peer stack identities are locked.",
+        "Umbrella source/target selections and all three stack identities are locked.",
         "Required chart/image access and selected package/image inspection pass.",
         "All route-specific execution blockers have explicit reviewed resolution."
       ],
       "postconditions": [
         "Release inventories match exact tags, source commits and digests.",
         "Private three-way render diff preserves topology, identities and credentials.",
-        "Each peer stack selection matches its endpoint documentation matrix; the different documented control plane for stack 1.0.4 has an explicit reviewed resolution.",
+        "Each endpoint matches its umbrella manifest or the frozen legacy baseline matrix.",
         "Workload-created helpers and inline hook images have separate effective references, immutable digests and provenance checks, including entries absent from original inventories."
       ],
       "evidence": [
@@ -180,7 +180,7 @@
       ],
       "postconditions": [
         "Source lookup comparisons report no conflicting fields, missing live requests or failed reads. Null legacy fields that need repair block this exact route until a reviewed migration procedure exists.",
-        "The target SIS 0.7.6 backfill capability is reserved for during-hop verification; its existence is not evidence that source prerequisites passed.",
+        "Verify backfill availability in the actual target SIS 0.7.7 image. Any target repair requires an explicit during-hop boundary and does not replace source prerequisites.",
         "Every retained instance that requires target lookup has matching non-null IDs in the instance and authoritative request. Two null values do not satisfy a required lookup; record independent null counts and any reviewed terminal exclusions."
       ],
       "evidence": [
@@ -310,7 +310,7 @@
       "postconditions": [
         "Core and remaining enabled control-plane stages become ready without changing HA topology or identities.",
         "Original and new workloads work against compute 1.0.5 before the next action.",
-        "SIS 0.7.6 completes a matching VALIDATE scan with missingRequest=0, mismatched=0 and failed=0; any required target backfill is an explicit during-hop migration with its own recovery boundary."
+        "Target SIS 0.7.7 passes matching lookup validation with zero missing live requests, mismatches and failures. Verify actual task availability before using VALIDATE. Any target repair requires its own recovery boundary."
       ],
       "evidence": [
         "rollout and runtime images",
@@ -355,27 +355,29 @@
     "Retain upstream or mirrored cert-manager repository overrides; these images do not inherit global.image.",
     "Do not reuse source chart/image pins as site overrides; verify every effective pin against the selected inventory.",
     "Use exact selected chart packages rather than current source defaults. Record differences between packaged defaults, inventory references and stack source.",
-    "Do not infer stack versions from docs editions, umbrella manifests or VERSION files inside source snapshots. The release tag, inventory source and digest define the endpoint.",
+    "Resolve umbrella endpoints through their pinned released manifests. Verify each selected stack tag, source commit and inventory digest. Version 1.0.1 uses its frozen legacy matrix without a synthetic manifest.",
     "Select source and target peer versions from their separate recorded matrices. Preserve registration files, credentials and topology while changing the selected compute/observability releases."
   ],
   "migration_checks": [
-    "Cassandra 0.17.6 to 0.17.7: source keyspace SQL trees are unchanged; the image build and Java libraries changed. Compare actual image bytes and retain clean live ledgers and original RF/DC.",
-    "OpenBao server stays 2.6.2-nv-1.3.4; chart 0.32.6 to 0.32.7 and migration image 0.19.5 to 0.19.9 still require hook/catalog/JWT verification. Do not import the later product 1.0.4 versioned bridge procedure.",
-    "Verify earlier installation-history schema/backfill prerequisites explicitly. A source version label does not prove completion.",
-    "All three control-plane inventories select cert-manager chart 0.1.0 and images v1.20.2. No numerical downgrade occurs. Intended-profile CRD, webhook and certificate behavior remains an execution qualification gate."
+    "Compare actual Cassandra migration images, SQL trees and upgrade tasks for these umbrella selections. Preserve clean ledgers, source data and RF/DC mappings.",
+    "Check source installation history and service backfill availability before target rollout. Missing source tasks require an explicit bridge or blocker, not inferred completion.",
+    "Compare selected OpenBao hooks, migration helpers and JWT plugin lifecycle. Preserve Raft identity, catalog entries, mounts and old/new JWT behavior.",
+    "Review NATS persistence, stream and consumer configuration, and reloader behavior for the exact source/target artifacts. A higher umbrella version does not prove forward component selection.",
+    "Review cert-manager CRDs, webhook behavior, certificates and retained fixes against actual source/target selections.",
+    "Recheck historical init SQL and explicit upgrade migrations independently. Do not replay old init files or infer data backfills from Job completion."
   ],
-  "version_scope": "self-managed-stack",
+  "version_scope": "umbrella-release",
   "comparison_scope": {
-    "control_plane": "1.0.1 to 1.0.4",
+    "control_plane": "1.0.1 to 1.0.10",
     "compute_plane": "1.0.0 to 1.0.5",
     "observability": "1.0.0 to 1.0.0",
-    "peer_selection": "Per-endpoint documentation matrices, recorded in artifact-lock.json.",
+    "peer_selection": "Use released umbrella manifests. Use the frozen legacy matrix only for baseline 1.0.1.",
     "mixed_compute_fleet": "Candidate states requiring independent live acceptance; no supported execution is enabled."
   },
   "execution_blockers": [
+    "The umbrella scope changes the control-plane endpoint to stack 1.0.10. Recheck action ordering, effective configuration, migration/runtime behavior and recovery for these exact inputs. Prior stack 1.0.4 rehearsals do not satisfy this gate.",
     "Before supported execution, bind enabled-profile artifact coverage and migration/runtime acceptance to the exact artifacts, configuration, topology and current run.",
     "Require matching HA preservation, mixed-fleet, consistent restore and end-to-end workload evidence for the intended profile. Scoped laboratory acceptance does not qualify broader configurations or failure recovery.",
-    "Docs 1.0.4 selects Self-Managed 1.0.10. Using its peer versions with exact stack 1.0.4 requires route-specific compatibility review and evidence for the declared temporary combinations; do not substitute the documented control-plane version.",
     "Require native NATS stream/consumer configuration, storage-permission and replication checks across the repository change. Equal server binaries do not establish whole-image identity.",
     "Before backup or any hop action, require source-data-prerequisites with zero missing live requests, mismatches or failures; preserve the validated data epoch through the backup.",
     "Require original-reference identity for legacy NVCT helpers omitted from the source inventory before supported execution. Diagnostic repository access does not establish original byte equivalence.",
@@ -384,7 +386,7 @@
   "matrix_references": {
     "source_edition": "1.0.1",
     "target_reference_edition": "1.0.4",
-    "interpretation": "Use each endpoint matrix for its Compute Plane and Observability selections. Docs 1.0.4 selects control plane 1.0.10, while this issue explicitly selects stack 1.0.4; that difference still needs reconciliation. Final matrix selection does not qualify intermediate or mixed-fleet states."
+    "interpretation": "All three endpoint stacks match the released umbrella manifest, except legacy baseline 1.0.1. Final versions do not qualify temporary or mixed-fleet states."
   },
   "runtime_artifact_checks": [
     "Resolve function/task launch helpers and inline receipt-hook images from effective configuration and live Pod specifications. An absent inventory entry does not establish runtime absence.",

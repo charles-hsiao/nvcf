@@ -20,7 +20,7 @@ func rehearsalFixture(t *testing.T) (artifactLock, routeContract, string, string
 	if err != nil {
 		t.Fatal(err)
 	}
-	route, err := loadRoute("transitions/1.0.4-to-1.1.5.json", "1.0.4-to-1.1.5", lock)
+	route, err := loadRoute("transitions/umbrella-1.0.4-to-1.1.0.json", "umbrella-1.0.4-to-1.1.0", lock)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -208,7 +208,7 @@ func TestPrepareRejectsMovedTagBeforeArchive(t *testing.T) {
 
 func TestPrepareRejectsChangedInventoryBeforeCommands(t *testing.T) {
 	lock, route, config, out := rehearsalFixture(t)
-	if err := os.WriteFile(filepath.Join(filepath.Dir(config), "inputs", "control-plane-1.0.4.json"), []byte("changed"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(filepath.Dir(config), "inputs", "control-plane-1.0.10.json"), []byte("changed"), 0600); err != nil {
 		t.Fatal(err)
 	}
 	if err := prepareRehearsal(context.Background(), lock, route, out, config, time.Second, func(context.Context, string, ...string) ([]byte, error) {

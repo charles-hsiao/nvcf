@@ -1,12 +1,12 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "repository": "dsx-ai-factory/nvcf",
-  "version_scope": "self-managed-stack",
-  "peer_selection_basis": "Select Compute Plane and Observability independently from each endpoint reference matrix. Preserve the explicitly requested Self-Managed stack endpoint even when the documentation edition selects a different control plane; reconcile that difference before execution.",
+  "version_scope": "umbrella-release",
+  "peer_selection_basis": "Use each released umbrella manifest for all three stacks. Record legacy baseline 1.0.1 separately from its frozen documentation matrix and original inventories.",
   "selections": [
     {
       "version": "1.0.1",
-      "kind": "self-managed-stack",
+      "kind": "legacy-baseline",
       "stacks": {
         "control-plane": {
           "version": "1.0.1",
@@ -37,16 +37,8 @@
     },
     {
       "version": "1.0.4",
-      "kind": "self-managed-stack",
+      "kind": "umbrella-release",
       "stacks": {
-        "control-plane": {
-          "version": "1.0.4",
-          "source_tag": "deploy/stacks/self-managed/v1.0.4",
-          "source_commit": "826d641cd9d1dbea987e28b8e90fdc266a6e5610",
-          "inventory_asset": "nvcf-self-managed-stack-inventory.json",
-          "inventory_sha256": "sha256:9f109ccb23502558fda05ce436a556ee95dadced09bb07d8eb05fbe144a048c3",
-          "inventory_asset_id": 672726613
-        },
         "compute-plane": {
           "version": "1.0.5",
           "source_tag": "deploy/stacks/nvcf-compute-plane/v1.0.5",
@@ -54,6 +46,14 @@
           "inventory_asset": "nvcf-compute-plane-stack-inventory.json",
           "inventory_sha256": "sha256:cd6a9081fc4777073a437fdfbd343e0cd365502a4478143896e73d5d79a74e33",
           "inventory_asset_id": 712252677
+        },
+        "control-plane": {
+          "version": "1.0.10",
+          "source_tag": "deploy/stacks/self-managed/v1.0.10",
+          "source_commit": "e4b11e6db4ec8ff2af228579493685eca391447f",
+          "inventory_asset": "nvcf-self-managed-stack-inventory.json",
+          "inventory_sha256": "sha256:aedbabdde512c3956bf716033a2d0d8ea08c2fbb1c7992e8e018f9ce2c2a81db",
+          "inventory_asset_id": 712646490
         },
         "observability": {
           "version": "1.0.0",
@@ -64,20 +64,17 @@
           "inventory_asset_id": 571334027
         }
       },
-      "peer_matrix_edition": "1.0.4"
+      "peer_matrix_edition": "1.0.4",
+      "manifest": {
+        "path": "manifests/1.0.4.json",
+        "source_commit": "d46842d66fac896b7f7b9e8190a8f767f4db48cf",
+        "sha256": "sha256:20656169ea9d017d9168df668ae3632e5dde3699c3e1737d4142ec73bcaf1421"
+      }
     },
     {
-      "version": "1.1.5",
-      "kind": "self-managed-stack",
+      "version": "1.1.0",
+      "kind": "umbrella-release",
       "stacks": {
-        "control-plane": {
-          "version": "1.1.5",
-          "source_tag": "deploy/stacks/self-managed/v1.1.5",
-          "source_commit": "e11b44050c3770d650d5fd4bf0b8e8bebca6786c",
-          "inventory_asset": "nvcf-self-managed-stack-inventory.json",
-          "inventory_sha256": "sha256:2e4ce14b997e2ceda8dbdd54419193ccdc65a1cffe65734d7d3bada3c4f2543f",
-          "inventory_asset_id": 717469660
-        },
         "compute-plane": {
           "version": "1.1.0",
           "source_tag": "deploy/stacks/nvcf-compute-plane/v1.1.0",
@@ -85,6 +82,14 @@
           "inventory_asset": "nvcf-compute-plane-stack-inventory.json",
           "inventory_sha256": "sha256:ee76f728cfdf8d23ded4e5e63cba0e96bb3a53b7055e5ebb966204d33f27c9d1",
           "inventory_asset_id": 689120915
+        },
+        "control-plane": {
+          "version": "1.1.5",
+          "source_tag": "deploy/stacks/self-managed/v1.1.5",
+          "source_commit": "e11b44050c3770d650d5fd4bf0b8e8bebca6786c",
+          "inventory_asset": "nvcf-self-managed-stack-inventory.json",
+          "inventory_sha256": "sha256:2e4ce14b997e2ceda8dbdd54419193ccdc65a1cffe65734d7d3bada3c4f2543f",
+          "inventory_asset_id": 717469660
         },
         "observability": {
           "version": "1.1.0",
@@ -95,7 +100,12 @@
           "inventory_asset_id": 710762568
         }
       },
-      "peer_matrix_edition": "1.1.0"
+      "peer_matrix_edition": "1.1.0",
+      "manifest": {
+        "path": "manifests/1.1.0.json",
+        "source_commit": "2120f7aa9186391ad4f45bfaa0f5587364e1a3ff",
+        "sha256": "sha256:531239f3efca39d936d694e22f0c6fea54ead7c417b9ba8afa0781a9cc64e626"
+      }
     }
   ],
   "documentation_matrices": [
@@ -106,7 +116,8 @@
         "control-plane": "1.0.1",
         "compute-plane": "1.0.0",
         "observability": "1.0.0"
-      }
+      },
+      "source_commit": "570d4a47927c148159a1ec660b3ba746ccefece8"
     },
     {
       "edition": "1.0.4",
@@ -115,7 +126,8 @@
         "control-plane": "1.0.10",
         "compute-plane": "1.0.5",
         "observability": "1.0.0"
-      }
+      },
+      "source_commit": "59d50ba4c276cfddbfe8e0661e13566c24679aca"
     },
     {
       "edition": "1.1.0",
@@ -124,7 +136,8 @@
         "control-plane": "1.1.5",
         "compute-plane": "1.1.0",
         "observability": "1.1.0"
-      }
+      },
+      "source_commit": "7040758936fd6510fe6687576027ab2e98a43cfe"
     }
   ]
 }

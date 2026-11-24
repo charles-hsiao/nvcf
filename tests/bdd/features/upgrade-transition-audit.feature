@@ -12,33 +12,38 @@ Feature: Audit the immutable inputs for one upgrade hop
       | TRANSITION_INPUTS    |
       | TRANSITION_OUTPUT    |
 
-  Scenario: Compare both exact routes without qualifying either
+  Scenario: Compare both umbrella routes without qualifying either
     When I successfully run command:
       """
-      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route 1.0.1-to-1.0.4 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/101-104"
+      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.1-to-1.0.4 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/101-104"
       """
     Then yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "summary.qualification" should equal "unqualified"
     And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "comparison_scope" should equal "release-inventories"
     And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "runtime_artifact_checks[0]" should not be empty
-    # These literals test the requested endpoint and matrix peer selections.
+    And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "version_scope" should equal "umbrella-release"
+    And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[0].kind" should equal "legacy-baseline"
+    And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[1].kind" should equal "umbrella-release"
+    And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[1].manifest.sha256" should not be empty
+    # These literals test umbrella resolution and the explicit legacy exception.
     And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[0].stacks.control-plane.version" should equal "1.0.1"
-    And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[1].stacks.control-plane.version" should equal "1.0.4"
+    And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[1].stacks.control-plane.version" should equal "1.0.10"
     And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[0].stacks.compute-plane.version" should equal "1.0.0"
     And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[0].stacks.observability.version" should equal "1.0.0"
     And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[1].stacks.compute-plane.version" should equal "1.0.5"
     And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[1].stacks.observability.version" should equal "1.0.0"
     When I successfully run command:
       """
-      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route 1.0.4-to-1.1.5 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/104-115"
+      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.4-to-1.1.0 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/104-110"
       """
-    Then yaml file "${TRANSITION_OUTPUT}/104-115/audit.json" key "summary.qualification" should equal "unqualified"
-    And yaml file "${TRANSITION_OUTPUT}/104-115/audit.json" key "selections[1].stacks.control-plane.version" should equal "1.1.5"
-    And yaml file "${TRANSITION_OUTPUT}/104-115/audit.json" key "selections[1].stacks.compute-plane.version" should equal "1.1.0"
-    And yaml file "${TRANSITION_OUTPUT}/104-115/audit.json" key "selections[1].stacks.observability.version" should equal "1.1.0"
-    And yaml file "${TRANSITION_OUTPUT}/104-115/audit.json" key "conditional_checks[0].id" should equal "dynamo-nats-reloader-downgrade"
-    And yaml file "${TRANSITION_OUTPUT}/104-115/audit.json" key "conditional_checks[0].when_applicable" should not be empty
-    And yaml file "${TRANSITION_OUTPUT}/104-115/audit.json" key "conditional_checks[0].when_not_applicable" should not be empty
-    And yaml file "${TRANSITION_OUTPUT}/104-115/audit.json" key "conditional_checks[0].when_unknown" should not be empty
+    Then yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "summary.qualification" should equal "unqualified"
+    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[1].stacks.control-plane.version" should equal "1.1.5"
+    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[0].stacks.control-plane.version" should equal "1.0.10"
+    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[1].stacks.compute-plane.version" should equal "1.1.0"
+    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[1].stacks.observability.version" should equal "1.1.0"
+    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "conditional_checks[0].id" should equal "dynamo-nats-reloader-downgrade"
+    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "conditional_checks[0].when_applicable" should not be empty
+    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "conditional_checks[0].when_not_applicable" should not be empty
+    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "conditional_checks[0].when_unknown" should not be empty
 
   Scenario: Reject peers selected from another endpoint matrix
     Given I copy the file "${TRANSITION_CONTRACTS}/artifact-lock.json" to "${TRANSITION_OUTPUT}/wrong-matrix-contracts/artifact-lock.json"
@@ -50,34 +55,56 @@ Feature: Audit the immutable inputs for one upgrade hop
       """
     When I run command:
       """
-      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_OUTPUT}/wrong-matrix-contracts" --route 1.0.1-to-1.0.4 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/wrong-matrix-rejected"
+      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_OUTPUT}/wrong-matrix-contracts" --route umbrella-1.0.1-to-1.0.4 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/wrong-matrix-rejected"
       """
     Then the command exit code should be 1
     And the command output should contain "differs from docs matrix"
 
-  Scenario: Reject a product selection for a stack endpoint
-    Given I copy the file "${TRANSITION_CONTRACTS}/artifact-lock.json" to "${TRANSITION_OUTPUT}/product-contracts/artifact-lock.json"
-    And I substitute a block in file "${TRANSITION_OUTPUT}/product-contracts/artifact-lock.json":
+  Scenario: Reject a stack-only selection in an umbrella lock
+    Given I copy the file "${TRANSITION_CONTRACTS}/artifact-lock.json" to "${TRANSITION_OUTPUT}/wrong-kind-contracts/artifact-lock.json"
+    And I substitute a block in file "${TRANSITION_OUTPUT}/wrong-kind-contracts/artifact-lock.json":
       """
-      "version": "1.0.4",
-            "kind": "self-managed-stack"
+      "kind": "umbrella-release"
       ---
-      "version": "1.0.4",
-            "kind": "product-manifest"
+      "kind": "self-managed-stack"
       """
     When I run command:
       """
-      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_OUTPUT}/product-contracts" --route 1.0.1-to-1.0.4 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/product-rejected"
+      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_OUTPUT}/wrong-kind-contracts" --route umbrella-1.0.1-to-1.0.4 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/wrong-kind-rejected"
       """
     Then the command exit code should be 1
-    And the command output should contain "selection must name its exact Self-Managed stack version"
+    And the command output should contain "unsupported selection kind"
+
+  Scenario: Reject changed umbrella manifest bytes
+    Given I copy the file "${TRANSITION_CONTRACTS}/artifact-lock.json" to "${TRANSITION_OUTPUT}/changed-manifest-contracts/artifact-lock.json"
+    And I copy the file "${TRANSITION_CONTRACTS}/manifests/1.0.4.json" to "${TRANSITION_OUTPUT}/changed-manifest-contracts/manifests/1.0.4.json"
+    And I substitute a block in file "${TRANSITION_OUTPUT}/changed-manifest-contracts/manifests/1.0.4.json":
+      """
+      "version": "1.0.4"
+      ---
+      "version": "9.9.9"
+      """
+    When I run command:
+      """
+      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_OUTPUT}/changed-manifest-contracts" --route umbrella-1.0.1-to-1.0.4 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/manifest-rejected"
+      """
+    Then the command exit code should be 1
+    And the command output should contain "umbrella manifest digest mismatch"
+
+  Scenario: Reject a historical stack-only route ID
+    When I run command:
+      """
+      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route 1.0.1-to-1.0.4 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/old-route-rejected"
+      """
+    Then the command exit code should be 1
+    And the command output should contain "provide an umbrella route ID"
 
   Scenario: Reject a changed source inventory before comparison
     Given I write yaml file "${TRANSITION_OUTPUT}/changed-inputs/control-plane-1.0.1.json" with values:
       | source.version | changed |
     When I run command:
       """
-      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route 1.0.1-to-1.0.4 --inputs "${TRANSITION_OUTPUT}/changed-inputs" --out "${TRANSITION_OUTPUT}/rejected"
+      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.1-to-1.0.4 --inputs "${TRANSITION_OUTPUT}/changed-inputs" --out "${TRANSITION_OUTPUT}/rejected"
       """
     Then the command exit code should be 1
     And the command output should contain "inventory digest mismatch"
@@ -85,14 +112,14 @@ Feature: Audit the immutable inputs for one upgrade hop
   Scenario: Reject an undeclared direct hop
     When I run command:
       """
-      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route 1.0.1-to-1.1.5 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/direct-hop"
+      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.1-to-1.1.0 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/direct-hop"
       """
     Then the command exit code should be 1
 
   Scenario: Refuse an unimplemented mutation phase before reading credentials
     When I run command:
       """
-      "${UPGRADE_LAB}" rehearse --route 1.0.4-to-1.1.5 --run-config "${TRANSITION_OUTPUT}/absent-private-config.json" --run-dir "${TRANSITION_OUTPUT}/must-not-apply" --phase apply
+      "${UPGRADE_LAB}" rehearse --route umbrella-1.0.4-to-1.1.0 --run-config "${TRANSITION_OUTPUT}/absent-private-config.json" --run-dir "${TRANSITION_OUTPUT}/must-not-apply" --phase apply
       """
     Then the command exit code should be 1
     And the command output should contain "only prepare is implemented"
@@ -104,7 +131,7 @@ Feature: Audit the immutable inputs for one upgrade hop
       """
     When I run command:
       """
-      "${UPGRADE_LAB}" check-recovery --contracts "${TRANSITION_CONTRACTS}" --route 1.0.4-to-1.1.5 --baseline "${TRANSITION_OUTPUT}/empty-recovery.json" --checkpoint "${TRANSITION_OUTPUT}/empty-recovery.json" --out "${TRANSITION_OUTPUT}/must-not-recover"
+      "${UPGRADE_LAB}" check-recovery --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.4-to-1.1.0 --baseline "${TRANSITION_OUTPUT}/empty-recovery.json" --checkpoint "${TRANSITION_OUTPUT}/empty-recovery.json" --out "${TRANSITION_OUTPUT}/must-not-recover"
       """
     Then the command exit code should be 1
     And the command output should contain "recovery checkpoint does not match"

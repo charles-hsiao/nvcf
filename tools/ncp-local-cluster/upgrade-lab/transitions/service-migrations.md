@@ -5,7 +5,15 @@ the selected service release trees and actual images before choosing a data
 migration window. Schema migration Job completion does not prove completion
 of a service's scheduled backfill.
 
-## Selected SIS images
+## Current umbrella review
+
+The current inventories select SIS 0.7.2, 0.7.7 and 0.8.5.
+The historical inspections below do not inspect the 0.7.7 image selected by umbrella 1.0.4.
+Verify task availability and semantics in that exact image before applying its task mode.
+A missing required task blocks execution until a reviewed repair or bridge exists.
+Preserve independent non-null lookup checks and partial-repair recovery rules.
+
+## Historical SIS image inspections
 
 | Self-Managed stack | SIS image | Service source commit | Instance lookup task |
 | --- | --- | --- | --- |
@@ -101,15 +109,14 @@ values. A restore or changed data epoch invalidates earlier completion evidence.
 
 ## Route boundaries
 
-For stack 1.0.4 to 1.1.5, this is a source prerequisite: finish it before the
-backup and before replacing SIS 0.7.6. The source already has the capability;
-its removal does not by itself require another version hop.
+For umbrella 1.0.4 to 1.1.0, verify the source SIS 0.7.7 image and installation history.
+Complete applicable source data checks before backup and replacement with SIS 0.8.5.
+Do not assume that the previous SIS 0.7.6 image inspection covers 0.7.7.
 
-For stack 1.0.1 to 1.0.4, SIS 0.7.2 has no such task. Compare source rows with
-their requests directly. Unresolved null legacy fields, missing live requests
-or conflicts block this candidate until a reviewed repair procedure exists.
-After the hop, validate again with target SIS 0.7.6. Any target repair is a
-during-hop migration, with its own recovery boundary.
+For the legacy 1.0.1 baseline, SIS 0.7.2 has no inspected backfill task.
+Compare source rows with their requests directly.
+Unresolved null fields, missing live requests or conflicts block execution until a reviewed repair exists.
+Any target-side repair needs a separate during-hop recovery boundary.
 
 The task appears in service release trees 0.7.5 through 0.7.7, is absent from
 0.8.0 through 0.8.5 and appears again in maintenance release 0.8.6. Release

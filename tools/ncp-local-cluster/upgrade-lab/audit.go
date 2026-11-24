@@ -31,6 +31,7 @@ type auditSummary struct {
 	Unordered     int    `json:"unordered"`
 }
 type auditReport struct {
+	VersionScope          string             `json:"version_scope"`
 	ComparisonScope       string             `json:"comparison_scope"`
 	ArtifactLockSHA256    string             `json:"artifact_lock_sha256"`
 	ContractSHA256        string             `json:"contract_sha256"`
@@ -137,7 +138,7 @@ func compareVersion(a, b string) (int, bool) {
 	return suffixOrder, true
 }
 func compareRoute(lock artifactLock, r routeContract, in map[string]map[string]inventory) (auditReport, error) {
-	report := auditReport{ComparisonScope: "release-inventories", ArtifactLockSHA256: lock.SHA256, ContractSHA256: r.SHA256, Summary: auditSummary{Route: r.ID, Qualification: "unqualified"}, ExecutionBlockers: r.ExecutionBlockers, ConditionalChecks: r.ConditionalChecks, RuntimeArtifactChecks: r.RuntimeArtifactChecks}
+	report := auditReport{VersionScope: r.VersionScope, ComparisonScope: "release-inventories", ArtifactLockSHA256: lock.SHA256, ContractSHA256: r.SHA256, Summary: auditSummary{Route: r.ID, Qualification: "unqualified"}, ExecutionBlockers: r.ExecutionBlockers, ConditionalChecks: r.ConditionalChecks, RuntimeArtifactChecks: r.RuntimeArtifactChecks}
 	for _, v := range []string{r.From, r.To} {
 		s, err := lock.selection(v)
 		if err != nil {
@@ -207,11 +208,11 @@ func compareRoute(lock artifactLock, r routeContract, in map[string]map[string]i
 func renderComparison(r auditReport) string {
 	var out strings.Builder
 	fmt.Fprintf(&out, "# Component transition: %s\n\nQualification: unqualified. Inventory comparison does not prove runtime compatibility.\n\n", r.Summary.Route)
-	out.WriteString("Route versions identify Self-Managed stack releases. Peer stacks are selected separately.\n\n")
+	out.WriteString("Route versions identify umbrella releases. Version 1.0.1 is a separate legacy baseline.\n\n")
 	out.WriteString("Comparison includes optional releases. Inventory differences do not establish profile applicability or runtime failure.\n\n")
 	out.WriteString("Blank cells mean no entry in that consumer's inventory. They do not establish runtime absence. Added and removed counts describe inventory entries.\n\n")
 	for _, s := range r.Selections {
-		fmt.Fprintf(&out, "Endpoint %s peer selection: [Docs %s matrix](https://docs.nvidia.com/nvcf/%s/release-notes/compatibility-matrix).\n\n", s.Version, s.PeerMatrixEdition, s.PeerMatrixEdition)
+		fmt.Fprintf(&out, "Endpoint %s reference: [Docs %s matrix](https://docs.nvidia.com/nvcf/%s/release-notes/compatibility-matrix).\n\n", s.Version, s.PeerMatrixEdition, s.PeerMatrixEdition)
 	}
 	fmt.Fprintf(&out, "Artifact lock: `%s`\n\nContract: `%s`\n\n", r.ArtifactLockSHA256, r.ContractSHA256)
 	out.WriteString("| Endpoint | Plane | Stack version | Source tag | Source commit | Inventory SHA-256 |\n| --- | --- | --- | --- | --- | --- |\n")

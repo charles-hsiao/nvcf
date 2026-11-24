@@ -1,4 +1,12 @@
-# Runtime prerequisites and rehearsal scope
+# Runtime prerequisites and historical findings
+
+The profile-specific observations below come from the previous stack-only rehearsals.
+They compare control stacks 1.0.1, 1.0.4 and 1.1.5.
+They do not establish behavior for umbrella 1.0.4, which selects control stack 1.0.10.
+Recheck actual source/target configuration, images and renders for both current contracts.
+The previous equal NATS binary finding does not cover the new server regression.
+The previous receipt helper and ingress ordering also require a new review.
+See the [current selections and findings](README.md).
 
 An inventory comparison covers the original inventory entries. It does not
 discover every image selected by application defaults, operator-created Pods
@@ -29,7 +37,7 @@ Inline receipt charts also need inspection. The source receipt helper selects
 check. A `VERSION` value in a Git source export can differ from its stack tag.
 Keep tag, commit and inventory identities as separate evidence. Inspect a
 distributed archive separately before drawing conclusions about its receipt.
-The selected 1.0.4 and 1.1.5 receipt charts instead default to
+The historical stack 1.0.4 and 1.1.5 receipt charts instead default to
 `docker.io/alpine/k8s:1.33.1`. Check each endpoint's actual chart and effective
 values; a failed legacy reference does not establish target-image failure.
 
@@ -74,7 +82,7 @@ Check each GRPCRoute's parent gateway, listener, authority and backend. A
 running inference container and an HTTP 200 in worker logs do not prove that
 its response attachment reached the caller.
 
-All selected stacks support `grpcproxy.workerConnectBaseURL`. A fixed TCP
+The inspected historical stacks support `grpcproxy.workerConnectBaseURL`. A fixed TCP
 callback URL needs one gRPC proxy replica to preserve worker affinity. The
 current laboratory site also routes invocation callbacks through one
 invocation-service replica. This does not qualify callback affinity with

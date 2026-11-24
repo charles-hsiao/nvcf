@@ -32,7 +32,7 @@ func TestCommittedContracts(t *testing.T) {
 				t.Fatal(err)
 			}
 			if r.From == r.To {
-				t.Fatal("route must change Self-Managed stack identity")
+				t.Fatal("route must change umbrella endpoint identity")
 			}
 			var execution struct {
 				Enabled *bool `json:"supported_execution_enabled"`
@@ -62,7 +62,7 @@ func TestPeerSelectionRequiresItsEndpointMatrix(t *testing.T) {
 				target.Stacks[plane] = lock.Selections[0].Stacks[plane]
 			}
 			path := filepath.Join(t.TempDir(), "artifact-lock.json")
-			if err := writeJSON(path, lock); err != nil {
+			if err := writeLockFixture(path, lock); err != nil {
 				t.Fatal(err)
 			}
 			if _, err := loadLock(path); err == nil {
@@ -92,31 +92,6 @@ func TestInventoryDigestAndIdentity(t *testing.T) {
 	ref.Commit = inv.Source.Commit
 	if _, err := verifyInventory(raw, ref, "compute-plane"); err == nil {
 		t.Fatal("accepted wrong deployment plane")
-	}
-}
-
-func TestStackEndpointRejectsProductAndDocsSelections(t *testing.T) {
-	for _, kind := range []string{"product-manifest", "legacy-docs-edition", "self-managed-stack"} {
-		t.Run(kind, func(t *testing.T) {
-			lock, err := loadLock(filepath.Join("transitions", "artifact-lock.json"))
-			if err != nil {
-				t.Fatal(err)
-			}
-			lock.Selections[1].Kind = kind
-			if kind == "self-managed-stack" {
-				ref := lock.Selections[1].Stacks["control-plane"]
-				ref.Version = "1.0.10"
-				ref.Tag = "deploy/stacks/self-managed/v1.0.10"
-				lock.Selections[1].Stacks["control-plane"] = ref
-			}
-			path := filepath.Join(t.TempDir(), "artifact-lock.json")
-			if err := writeJSON(path, lock); err != nil {
-				t.Fatal(err)
-			}
-			if _, err := loadLock(path); err == nil {
-				t.Fatal("accepted a product/docs selection or a different control-plane stack")
-			}
-		})
 	}
 }
 
@@ -198,7 +173,7 @@ func TestLockRejectsConflictingSharedInventories(t *testing.T) {
 			lock.Selections[1].Stacks["observability"] = ref
 			root := t.TempDir()
 			path := filepath.Join(root, "artifact-lock.json")
-			if err := writeJSON(path, lock); err != nil {
+			if err := writeLockFixture(path, lock); err != nil {
 				t.Fatal(err)
 			}
 			_, err = loadLock(path)
@@ -212,7 +187,7 @@ func TestLockRejectsConflictingSharedInventories(t *testing.T) {
 				t.Fatalf("accepted conflicting %s for a shared inventory: %v", field, err)
 			}
 			out := filepath.Join(root, "must-not-fetch")
-			err = run(context.Background(), []string{"fetch", "--contracts", root, "--route", "1.0.1-to-1.0.4", "--out", out})
+			err = run(context.Background(), []string{"fetch", "--contracts", root, "--route", "umbrella-1.0.1-to-1.0.4", "--out", out})
 			if err == nil || !strings.Contains(err.Error(), "conflicting inventory") {
 				t.Fatalf("fetch did not reject the conflicting lock first: %v", err)
 			}
@@ -229,11 +204,11 @@ func TestRouteRejectsUnchangedEndpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 	var route routeContract
-	if err := readJSON("transitions/1.0.4-to-1.1.5.json", &route); err != nil {
+	if err := readJSON("transitions/umbrella-1.0.4-to-1.1.0.json", &route); err != nil {
 		t.Fatal(err)
 	}
 	route.To = route.From
-	route.ID = route.From + "-to-" + route.To
+	route.ID = "umbrella-" + route.From + "-to-" + route.To
 	path := filepath.Join(t.TempDir(), "route.json")
 	if err := writeJSON(path, route); err != nil {
 		t.Fatal(err)
@@ -249,7 +224,7 @@ func TestOptionalDowngradeRemainsAConditionalFinding(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	id := "1.0.4-to-1.1.5"
+	id := "umbrella-1.0.4-to-1.1.0"
 	r, err := loadRoute(filepath.Join(root, id+".json"), id, lock)
 	if err != nil {
 		t.Fatal(err)
@@ -284,7 +259,7 @@ func TestOptionalDowngradeRemainsAConditionalFinding(t *testing.T) {
 func TestConditionalChecksRejectMissingDecisionsAndEvidence(t *testing.T) {
 	for _, missing := range []string{"not-applicable", "unknown", "evidence", "duplicate"} {
 		t.Run(missing, func(t *testing.T) {
-			root, id := "transitions", "1.0.4-to-1.1.5"
+			root, id := "transitions", "umbrella-1.0.4-to-1.1.0"
 			lock, err := loadLock(filepath.Join(root, "artifact-lock.json"))
 			if err != nil {
 				t.Fatal(err)
@@ -412,7 +387,7 @@ func TestRouteRejectsForwardDependencies(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	path := filepath.Join(root, "1.0.1-to-1.0.4.json")
+	path := filepath.Join(root, "umbrella-1.0.1-to-1.0.4.json")
 	var r routeContract
 	if err := readJSON(path, &r); err != nil {
 		t.Fatal(err)
@@ -425,7 +400,7 @@ func TestRouteRejectsForwardDependencies(t *testing.T) {
 	if _, err := loadRoute(bad, r.ID, lock); err == nil {
 		t.Fatal("accepted dependency cycle")
 	}
-	if _, err := loadRoute(filepath.Join(t.TempDir(), "absent.json"), "../route", lock); err == nil || !strings.Contains(err.Error(), "provide an exact route ID") {
+	if _, err := loadRoute(filepath.Join(t.TempDir(), "absent.json"), "../route", lock); err == nil || !strings.Contains(err.Error(), "provide an umbrella route ID") {
 		t.Fatalf("route ID was not rejected before file access: %v", err)
 	}
 }
@@ -454,7 +429,7 @@ func TestSourceDataGatePrecedesBackupAndHop(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"1.0.1-to-1.0.4", "1.0.4-to-1.1.5"} {
+	for _, id := range []string{"umbrella-1.0.1-to-1.0.4", "umbrella-1.0.4-to-1.1.0"} {
 		t.Run(id, func(t *testing.T) {
 			route, err := loadRoute("transitions/"+id+".json", id, lock)
 			if err != nil {
@@ -511,7 +486,7 @@ func TestRejectBlankRuntimeArtifactCheck(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	id := "1.0.1-to-1.0.4"
+	id := "umbrella-1.0.1-to-1.0.4"
 	route, err := loadRoute("transitions/"+id+".json", id, lock)
 	if err != nil {
 		t.Fatal(err)

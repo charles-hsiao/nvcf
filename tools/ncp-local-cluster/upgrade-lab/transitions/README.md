@@ -1,157 +1,92 @@
-# Self-Managed stack transition candidates
+# Umbrella upgrade candidates
 
-These lab inputs and reports cover [issue #3558](https://github.com/dsx-ai-factory/nvcf/issues/3558).
-They are not required deployment files or a published upgrade catalog.
-Both routes remain unqualified and disabled for supported execution.
+These lab inputs cover [issue #3558](https://github.com/dsx-ai-factory/nvcf/issues/3558).
+Both routes remain unqualified. Supported execution remains disabled.
+These files are lab inputs, not required deployment files or a published catalog.
 
-## Exact comparison scope
+## Version identities
 
-| Route | Source control / compute / observability | Target control / compute / observability | Contract | Component report |
-| --- | --- | --- | --- | --- |
-| Stack 1.0.1 to 1.0.4 | 1.0.1 / 1.0.0 / 1.0.0 | 1.0.4 / 1.0.5 / 1.0.0 | [Contract](1.0.1-to-1.0.4.json) | [Report](1.0.1-to-1.0.4-components.md) |
-| Stack 1.0.4 to 1.1.5 | 1.0.4 / 1.0.5 / 1.0.0 | 1.1.5 / 1.1.0 / 1.1.0 | [Contract](1.0.4-to-1.1.5.json) | [Report](1.0.4-to-1.1.5-components.md) |
-
-Route numbers identify `deploy/stacks/self-managed/vX.Y.Z` releases.
-Compute Plane and Observability follow each endpoint's referenced matrix.
-Their inventories and the control-plane inventories are compared together.
-Final endpoint selection does not qualify intermediate or mixed-fleet states.
-
-## Read each documentation matrix separately
-
-| Documentation matrix | Documented Self-Managed | Compute Plane | Observability |
-| --- | --- | --- | --- |
-| [Docs 1.0.1](https://docs.nvidia.com/nvcf/1.0.1/release-notes/compatibility-matrix) | 1.0.1 | 1.0.0 | 1.0.0 |
-| [Docs 1.0.4](https://docs.nvidia.com/nvcf/1.0.4/release-notes/compatibility-matrix) | 1.0.10 | 1.0.5 | 1.0.0 |
-| [Docs 1.1.0](https://docs.nvidia.com/nvcf/1.1.0/release-notes/compatibility-matrix) | 1.1.5 | 1.1.0 | 1.1.0 |
-
-These are different edition selections. Docs 1.0.4 does not document stack
-1.0.4 as its selected control plane. Its peer versions are used here by explicit
-selection. Scoped route-specific compatibility checks passed in the recorded
-laboratory profile; broader support remains unqualified. The final
-1.1.5 / 1.1.0 / 1.1.0 selection matches docs 1.1.0.
-Do not replace an issue endpoint with an edition's selected control plane or
-infer peer versions from the endpoint number.
-
-## Identities and evidence
-
-[artifact-lock.json](artifact-lock.json) binds eight unique original stack
-inventories to exact release tags, source commits, asset IDs and SHA-256
-values. No umbrella bundle or synthetic product manifest defines these
-stack-only endpoints. Candidate manifests are not selected in this scope.
-
-The generated reports include endpoint selections, provenance, lock/contract
-digests, component differences and continuing execution requirements.
-[artifact-provenance.json](artifact-provenance.json) records selected chart
-hashes, image platform digests, migration/plugin comparisons and current report
-identities. It separates frozen manual-rehearsal inputs from current contract
-revisions. Source tree hashes do not prove distributed image/archive contents.
-
-Raw command output, recovery material, private configuration and historical
-run records belong in test artifacts outside this source tree.
-
-## Scoped rehearsal results
-
-The following manual checks ran on 2026-11-24. Each route used one physical
-host, fake GPUs, three critical stateful members on separate Kubernetes
-workers, one stateless callback replica and two retained compute clusters.
-These results do not qualify cross-host or stateless-replica HA.
-
-Both routes passed source-cohort restore, both compute updates, mixed-fleet
-acceptance, a separate action-boundary resume, final old/new HTTP/gRPC and task
-acceptance, fresh original-secret injection, and retained JWT/registration/data
-checks. The second route applied Observability last and checked native metric
-flow on all three clusters and new Event Ledger account-scoped reads.
-
-| Scoped acceptance | Stack 1.0.1 to 1.0.4 | Stack 1.0.4 to 1.1.5 |
+| Endpoint | Kind | Control / compute / observability |
 | --- | --- | --- |
-| Source member replacement probes | 176 passed, 0 failed | 184 passed, 0 failed |
-| Compute-one / compute-two probes | 44 / 44 passed, 0 failed | 36 / 36 passed, 0 failed |
-| Target member replacement probes | 172 passed, 0 failed | 180 passed, 0 failed |
-| Retained function versions / terminal tasks | 16 / 9 | 24 / 15 |
-| Retained failed source tasks within that task count | 1 | 3 |
+| NVCF 1.0.1 | Legacy baseline without an umbrella manifest | 1.0.1 / 1.0.0 / 1.0.0 |
+| Umbrella 1.0.4 | Released manifest | 1.0.10 / 1.0.5 / 1.0.0 |
+| Umbrella 1.1.0 | Released manifest | 1.1.5 / 1.1.0 / 1.1.0 |
 
-Each member rehearsal replaced one OpenBao leader, Cassandra member and NATS
-member, then checked data and identities. Single-replica management streams
-were drained before planned NATS replacement. These samples do not qualify
-unplanned loss with pending management work. Separate secret-Pod replacement
-on the second route recorded one transient unavailable call before recovery.
+| Route ID | Contract | Inventory comparison |
+| --- | --- | --- |
+| `umbrella-1.0.1-to-1.0.4` | [Contract](umbrella-1.0.1-to-1.0.4.json) | [Report](umbrella-1.0.1-to-1.0.4-components.md) |
+| `umbrella-1.0.4-to-1.1.0` | [Contract](umbrella-1.0.4-to-1.1.0.json) | [Report](umbrella-1.0.4-to-1.1.0-components.md) |
 
-The first source used diagnostic task helpers with assumed payload equivalence.
-Their original-reference byte identity remains unverified. These results do not
-satisfy that provenance gate or enable supported execution.
+The first route's source is an explicit legacy exception.
+Do not create an umbrella manifest for that baseline.
+The prefix identifies the route namespace. It does not change the source kind.
+Final endpoint compatibility does not qualify intermediate or mixed-fleet states.
 
-Recovery covers drained memory streams. Historical sequence/cursor counters
-can reset. Each source restore used 48 archived data volumes and three fresh
-derived cache volumes. A later fresh pre-hop backup was not itself restored.
-Interruption inside a command and restore after a migration failure were not
-tested. Hands-on effort and a matched manual baseline remain unmeasured.
-Caller pauses and intervals without probes do not establish service uptime.
+## Immutable inputs
 
-Receipt text from a Git source export can differ from its stack tag. Keep the
-original receipt value separate from tag, commit, inventory and runtime image
-identities. This observation does not establish distributed archive contents.
+[artifact-lock.json](artifact-lock.json) binds each manifest to a repository commit and SHA-256.
+The [1.0.4](manifests/1.0.4.json) and [1.1.0](manifests/1.1.0.json) copies retain their released bytes.
+Each manifest selects three stack tags, source commits and inventory digests.
+The lock adds original inventory asset IDs.
+The loader verifies all three selections against the manifest and frozen documentation matrix.
+The legacy baseline uses only its frozen matrix and original inventories.
 
-## Findings and remaining work
+Fetch verifies the remote manifest at its locked commit before downloading inventories.
+Audit verifies local manifest bytes and inventory identities before comparison.
+Neither operation changes released assets or establishes runtime compatibility.
+Old stack-only route IDs fail validation. Their checkpoints cannot resume these routes.
+The new contract and lock digests also invalidate evidence from the previous scope.
 
-Execution gates remain in force for each intended deployment profile:
+[artifact-provenance.json](artifact-provenance.json) records current report identities.
+It keeps historical inspections separate from current qualification requirements.
+Store raw output, private configuration, credentials and backups outside this repository.
 
-| Item | Reconciliation decision and execution gate |
+## Findings that require new review
+
+The first comparison has 55 changed entries, 9 added entries and no backward entries.
+The second has 69 changed entries, 2 added entries, 2 removed entries and 12 backward entries.
+Counts describe inventory entries, including optional releases. They do not establish deployed behavior.
+
+| Area | Required review for the new selections |
 | --- | --- |
-| OpenBao/JWT | Selected plugin bytes match and scoped catalog/key/mount/member checks passed. Require matching runtime lifecycle evidence for the intended profile before enabling execution. |
-| NATS | Control-plane server/reloader versions do not decrease. The repository change and drained-memory recovery profile have scoped evidence. Require storage/stream/consumer checks for each profile. Nonempty memory recovery remains unsupported. |
-| cert-manager | All three inventories select chart 0.1.0 and images v1.20.2. No numerical downgrade occurs. Intended-profile CRD, webhook and certificate behavior still requires qualification before execution. |
-| Stack 1.0.4 peers | Retain exact stack 1.0.4 with compute 1.0.5 and Observability 1.0.0. Scoped source/target and mixed checks passed. This does not substitute stack 1.0.10 or grant broader compatibility. |
+| Cassandra | Inspect 0.17.6 to 0.17.8, then 0.17.8 to 0.19.4. Compare actual files, upgrade ledgers and data. Earlier 0.17.7 inspections do not cover 0.17.8. |
+| SIS | Inspect actual 0.7.2, 0.7.7 and 0.8.5 images. Verify source backfill availability and required lookup IDs before backup. Preserve null-only repair safeguards. |
+| OpenBao | Compare server 2.6.2-nv-1.3.4, 2.6.3-nv-1.3.9 and 2.6.3-nv-1.3.7. Review bridge availability, hooks, plugin bytes, catalog, Raft identity and JWT behavior. |
+| NATS | The second route selects server 2.14.9 to 2.14.6 and reloader 0.25.0 to 0.24.0. Review enabled use, retained fixes, storage formats, configuration reload and recovery. |
+| cert-manager | The second route selects chart 0.2.0 to 0.1.0 and images v1.20.5 to v1.20.2. Review CRDs, webhook behavior, retained fixes and certificates. |
+| Other consumers | Review removed migration consumers, the UI migration helper and receipt helper regression against effective renders. |
+| Optional Dynamo | Preserve the conditional 0.25.0 to 0.24.0 reloader check. Disabled defaults alone do not establish absence. |
 
-The [runtime prerequisite report](runtime-prerequisites.md) covers effective
-NVCT helper images omitted from the source inventory, callback routing,
-native task completion and intermediate Observability selection. The
-[service data checks](service-migrations.md) define the SIS source backfill
-completion gate. The [recovery checks](recovery-prerequisites.md) record the
-selected NATS server's unsupported memory snapshots. Read these reports with
-the scoped rehearsal results and their qualification limits.
+Resolve applicability with effective values and rendered manifests.
+An applicable backward selection blocks its action until compatibility and retained fixes pass review and required runtime checks.
+Unknown applicability also blocks that action.
+Do not silently change a released manifest to remove a finding.
 
-- Cassandra migrations change from 0.17.6 to 0.17.7 to 0.19.4. The first
-  two images contain identical migration files. All 44, 44 and 47 extracted
-  files match their corresponding source commits. The last adds explicit Event
-  Ledger and SIS upgrade migrations and changes historical init SQL. Different
-  image build/runtime libraries and live data behavior still require review.
-- OpenBao migration consumers must remain separate. The enabled server hook
-  selects 0.19.5, 0.19.9 and 0.23.1 across the three stack inventories. The
-  downloaded chart 0.32.7 defaults to 0.19.5. Stack 1.0.4 base values explicitly
-  override it to 0.19.9, confirmed by actual hook renders.
-- The second route changes the OpenBao server image. The selected linux/amd64
-  images contain byte-identical JWT plugins, so the suspected old/new plugin
-  SHA mismatch does not apply to those digests. The catalog-refresh hook still
-  precedes migrations. Scoped checks passed for the live catalog, Raft/member
-  rotation, retained issuer/key/mount identities and old/new JWT behavior.
-  Broader profiles still require qualification. Do not import a later
-  versioned-plugin bridge procedure or rewrite catalog hashes as a workaround.
-- NATS server/reloader and cert-manager image versions do not numerically
-  decrease across the selected control-plane endpoints. Location and chart
-  changes still require artifact and compatibility checks.
-- The selected NATS server rejects native snapshots of memory streams.
-  The drained-memory profile has scoped source recovery evidence. Nonempty
-  memory recovery remains unsupported. Preserve per-stream storage, replication
-  and consumer semantics; record native historical sequence/cursor resets
-  explicitly. Failure recovery across a hop's data boundary remains untested.
-- Resolve applicable blockers before each upgrade action. Source checks do
-  not replace the separate target workload, mixed-compute, availability and
-  interruption/recovery evidence required for the selected profile.
-- Compute Plane 1.0.5 to 1.1.0 selects the optional Dynamo operator's
-  `nats-server-config-reloader` backward from 0.25.0 to 0.24.0. Both releases
-  disable Dynamo by default through `addons.dynamoOperator.enabled`.
-  The second contract records this as a conditional check. If Dynamo is
-  disabled at both endpoints and absent from both renders, retain the finding
-  without blocking that profile. If the effective renders show the downgrade,
-  verify compatibility, fix retention and configuration reload before the
-  affected compute action. Unknown applicability requires values/render review;
-  optional status or default settings alone do not establish absence. The lab
-  does not evaluate applicability. Preserve the matrix-selected endpoints.
+## Historical stack-only evidence
 
-The [manual reference draft](../../../../docs/dev/upgrade-transitions.md)
-separates prerequisites, hop actions, acceptance and recovery boundaries.
-The [measurement procedure](manual-measurement.md) defines equivalent inputs,
-operator activity records and availability measurements.
-The lab implements artifact input checks and isolated source/render preparation.
-Cluster and upgrade orchestration remain manual.
-No third-party dependency or published release artifact was changed.
+The previous candidates compared control stacks 1.0.1 to 1.0.4 and 1.0.4 to 1.1.5.
+They used different control artifacts from these umbrella candidates.
+Their manual checks do not qualify either current route.
+Keep their run records bound to their original route IDs, lock and contract digests.
+
+Read the [frozen rehearsal summary](https://github.com/dsx-ai-factory/nvcf/blob/aa1270cdbe356845d9d873d9424231b17be84c5b/tools/ncp-local-cluster/upgrade-lab/transitions/README.md#scoped-rehearsal-results)
+and [frozen contracts and reports](https://github.com/dsx-ai-factory/nvcf/tree/aa1270cdbe356845d9d873d9424231b17be84c5b/tools/ncp-local-cluster/upgrade-lab/transitions).
+The [original artifact inspections](historical/stack-only-artifact-provenance.json) retain their original bytes.
+Those inspections cover only the named artifacts and platform digests.
+Reused artifacts still require current profile, lifecycle and runtime evidence.
+The previous findings about equal plugin bytes and forward NATS versions do not cover stack 1.0.10.
+
+## Execution and qualification
+
+The [manual reference](../../../../docs/dev/upgrade-transitions.md) describes candidate action boundaries.
+The [runtime checks](runtime-prerequisites.md), [service checks](service-migrations.md)
+and [recovery checks](recovery-prerequisites.md) remain prerequisites.
+The [measurement procedure](manual-measurement.md) requires equivalent inputs and measured operator activity.
+
+The lab implements artifact checks and isolated source/render preparation.
+It does not execute upgrades, evaluate runtime postconditions or automate recovery.
+The released 1.1.0 notes prohibit upgrades from 1.0.4 until qualification is complete.
+Declaring this candidate does not remove that restriction.
+Both routes need new artifact review, configuration review and action-order review.
+They also need matching source/target workloads, HA, mixed-fleet, restore and interruption evidence.
+No current umbrella route has live qualification from this scope change.

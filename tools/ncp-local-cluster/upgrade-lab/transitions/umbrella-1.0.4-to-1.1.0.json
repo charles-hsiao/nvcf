@@ -1,8 +1,8 @@
 {
-  "schema_version": 1,
-  "id": "1.0.4-to-1.1.5",
+  "schema_version": 2,
+  "id": "umbrella-1.0.4-to-1.1.0",
   "from": "1.0.4",
-  "to": "1.1.5",
+  "to": "1.1.0",
   "qualification": "unqualified",
   "supported_execution_enabled": false,
   "topology": {
@@ -47,7 +47,7 @@
     "status": "candidates-requiring-live-evidence",
     "combinations": [
       {
-        "control-plane": "1.0.4",
+        "control-plane": "1.0.10",
         "compute-plane": [
           "1.0.5"
         ],
@@ -108,14 +108,14 @@
       "phase": "before-hop",
       "needs": [],
       "preconditions": [
-        "Exact Self-Managed source/target and separate peer stack identities are locked.",
+        "Umbrella source/target selections and all three stack identities are locked.",
         "Required chart/image access and selected package/image inspection pass.",
         "All route-specific execution blockers have explicit reviewed resolution."
       ],
       "postconditions": [
         "Release inventories match exact tags, source commits and digests.",
         "Private three-way render diff preserves topology, identities and credentials.",
-        "Each peer stack selection matches its endpoint documentation matrix; the different documented control plane for stack 1.0.4 has an explicit reviewed resolution.",
+        "Each endpoint matches its umbrella manifest or the frozen legacy baseline matrix.",
         "Workload-created helpers and inline hook images have separate effective references, immutable digests and provenance checks, including entries absent from original inventories."
       ],
       "evidence": [
@@ -184,7 +184,7 @@
       "preconditions": [
         "The source baseline, retained workload identities and installation history are recorded.",
         "Source service image versions and actual migration-task availability are verified independently of Helm chart versions.",
-        "SIS 0.7.6 contains InstanceLookupBackfillTask, disabled by default; the selected target SIS 0.8.5 image omits it.",
+        "Check the source SIS task and the target lookup requirements in actual selected images. An unavailable required source task blocks execution until a reviewed bridge exists.",
         "Quiesce affected source writes for the final scan. If null fields need repair, run the released source task in MIGRATE mode, then switch to VALIDATE. Do not overwrite conflicting non-null data."
       ],
       "postconditions": [
@@ -390,37 +390,37 @@
     "Retain upstream or mirrored cert-manager repository overrides; these images do not inherit global.image.",
     "Do not reuse source chart/image pins as site overrides; verify every effective pin against the selected inventory.",
     "Use exact selected chart packages rather than current source defaults. Record differences between packaged defaults, inventory references and stack source.",
-    "Do not infer stack versions from docs editions, umbrella manifests or VERSION files inside source snapshots. The release tag, inventory source and digest define the endpoint.",
+    "Resolve umbrella endpoints through their pinned released manifests. Verify each selected stack tag, source commit and inventory digest. Version 1.0.1 uses its frozen legacy matrix without a synthetic manifest.",
     "Select source and target peer versions from their separate recorded matrices. Preserve registration files, credentials and topology while changing the selected compute/observability releases."
   ],
   "migration_checks": [
-    "Cassandra 0.17.7 to 0.19.4: preserve source ledgers and data; verify Event Ledger migration 04 account/function columns and SIS migrations 11/12 creation-bucket columns/indexes in actual images and live schema.",
-    "The target changes historical init SQL as well as explicit upgrade migrations. Do not replay old init files or infer backfills from Job completion. Event Ledger migration 04 explicitly has no backfill.",
-    "OpenBao server changes from 2.6.2-nv-1.3.4 to 2.6.3-nv-1.3.7; its migration hook changes from 0.19.9 to 0.23.1. Preserve source mounts/catalog/plugin bytes and verify JWTs, failover and hook/rotation order.",
-    "The optional disabled UI uses OpenBao migrations 0.19.10. Keep that consumer separate from the enabled server hook at 0.23.1.",
-    "NATS server 2.14.6-alpine3.22, reloader 0.24.0 and cert-manager v1.20.2 are numerically unchanged. Repository and chart differences still require actual artifact and runtime compatibility checks.",
-    "All three control-plane inventories select cert-manager chart 0.1.0 and images v1.20.2. No numerical downgrade occurs. Intended-profile CRD, webhook and certificate behavior remains an execution qualification gate."
+    "Compare actual Cassandra migration images, SQL trees and upgrade tasks for these umbrella selections. Preserve clean ledgers, source data and RF/DC mappings.",
+    "Check source installation history and service backfill availability before target rollout. Missing source tasks require an explicit bridge or blocker, not inferred completion.",
+    "Compare selected OpenBao hooks, migration helpers and JWT plugin lifecycle. Preserve Raft identity, catalog entries, mounts and old/new JWT behavior.",
+    "Review NATS persistence, stream and consumer configuration, and reloader behavior for the exact source/target artifacts. A higher umbrella version does not prove forward component selection.",
+    "Review cert-manager CRDs, webhook behavior, certificates and retained fixes against actual source/target selections.",
+    "Recheck historical init SQL and explicit upgrade migrations independently. Do not replay old init files or infer data backfills from Job completion."
   ],
-  "version_scope": "self-managed-stack",
+  "version_scope": "umbrella-release",
   "comparison_scope": {
-    "control_plane": "1.0.4 to 1.1.5",
+    "control_plane": "1.0.10 to 1.1.5",
     "compute_plane": "1.0.5 to 1.1.0",
     "observability": "1.0.0 to 1.1.0",
-    "peer_selection": "Per-endpoint documentation matrices, recorded in artifact-lock.json.",
+    "peer_selection": "Use released umbrella manifests. Use the frozen legacy matrix only for baseline 1.0.1.",
     "mixed_compute_fleet": "Candidate states requiring independent live acceptance; no supported execution is enabled."
   },
   "execution_blockers": [
+    "The umbrella scope changes the control-plane endpoint to stack 1.0.10. Recheck action ordering, effective configuration, migration/runtime behavior and recovery for these exact inputs. Prior stack 1.0.4 rehearsals do not satisfy this gate.",
     "Before supported execution, bind enabled-profile artifact coverage and migration/runtime acceptance to the exact artifacts, configuration, topology and current run.",
     "Require matching HA preservation, mixed-fleet, consistent restore and end-to-end workload evidence for the intended profile. Scoped laboratory acceptance does not qualify broader configurations or failure recovery.",
-    "Docs 1.0.4 selects Self-Managed 1.0.10. Using its peer versions with exact stack 1.0.4 requires route-specific compatibility review and evidence for the declared temporary combinations; do not substitute the documented control-plane version.",
-    "For the selected OpenBao images, verify the live catalog and plugin hashes, Raft/member rotation, retained issuer/key/mount identities, old/new JWTs and fresh injection. Equal plugin payloads do not replace these runtime checks.",
+    "For the selected OpenBao images, verify the live catalog and plugin hashes, Raft/member rotation, retained issuer/key/mount identities, old/new JWTs and fresh injection. Compare actual selected plugin bytes and bridge requirements before applying either route.",
     "Before backup or any hop action, require source-data-prerequisites with zero missing live requests, mismatches or failures; preserve the validated data epoch through the backup.",
     "For drained-memory-cold-restore, require matching paused-source observations and consistent isolated full-cohort restore acceptance. Nonempty or in-flight memory recovery remains unsupported; an earlier restore does not establish recovery from a later migration failure."
   ],
   "matrix_references": {
     "source_edition": "1.0.4",
     "target_reference_edition": "1.1.0",
-    "interpretation": "Use each endpoint matrix for its Compute Plane and Observability selections. Docs 1.0.4 selects control plane 1.0.10, while this issue explicitly selects stack 1.0.4; that difference still needs reconciliation. Final matrix selection does not qualify intermediate or mixed-fleet states."
+    "interpretation": "All three endpoint stacks match the released umbrella manifest, except legacy baseline 1.0.1. Final versions do not qualify temporary or mixed-fleet states."
   },
   "conditional_checks": [
     {
@@ -433,6 +433,18 @@
         "effective source and target addons.dynamoOperator.enabled values",
         "source and target rendered Dynamo/NATS manifests and exact reloader image references, or verified absence at both endpoints",
         "when applicable: image/chart change comparison, fix-retention review and runtime configuration-reload results"
+      ]
+    },
+    {
+      "id": "control-artifact-regressions",
+      "applies_when": "Effective source/target values and renders select backward or removed control-plane artifacts from the component report.",
+      "when_applicable": "Block the affected action until artifact compatibility, retained fixes, data formats and recovery pass review and runtime checks. Review cert-manager, NATS, OpenBao, migration consumers and receipt helpers separately.",
+      "when_not_applicable": "Record values and renders that establish absence. Unexpected removal of an enabled feature requires a separate preservation review.",
+      "when_unknown": "Stop before the affected action until effective values and rendered references establish applicability. A newer umbrella number does not establish forward component selection.",
+      "evidence": [
+        "effective values and rendered artifact references",
+        "artifact and retained-fix comparisons",
+        "applicable data, lifecycle, workload and recovery results"
       ]
     }
   ],

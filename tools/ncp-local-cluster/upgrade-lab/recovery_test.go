@@ -19,7 +19,7 @@ func recoveryFixture(t *testing.T) (recoveryInventory, recoveryCheckpoint, route
 	if err != nil {
 		t.Fatal(err)
 	}
-	route, err := loadRoute("transitions/1.0.4-to-1.1.5.json", "1.0.4-to-1.1.5", lock)
+	route, err := loadRoute("transitions/umbrella-1.0.4-to-1.1.0.json", "umbrella-1.0.4-to-1.1.0", lock)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,6 +59,7 @@ func TestDrainedRecoveryRequiresCompleteStableEvidence(t *testing.T) {
 		t.Fatal(err)
 	}
 	tests := map[string]func(*recoveryInventory, *recoveryCheckpoint, *routeContract){
+		"historical-route":   func(_ *recoveryInventory, c *recoveryCheckpoint, _ *routeContract) { c.Route = "1.0.4-to-1.1.5" },
 		"undeclared-profile": func(_ *recoveryInventory, _ *recoveryCheckpoint, r *routeContract) { r.RecoveryMode = "" },
 		"active-callers":     func(_ *recoveryInventory, c *recoveryCheckpoint, _ *routeContract) { c.Barrier.CallersPaused = false },
 		"active-writers":     func(_ *recoveryInventory, c *recoveryCheckpoint, _ *routeContract) { c.Barrier.WritersPaused = false },

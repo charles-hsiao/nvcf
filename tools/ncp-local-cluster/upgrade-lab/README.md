@@ -1,6 +1,6 @@
 # Upgrade transition lab
 
-Audit the exact inputs for `1.0.1-to-1.0.4` or `1.0.4-to-1.1.5` before
+Audit the exact inputs for `umbrella-1.0.1-to-1.0.4` or `umbrella-1.0.4-to-1.1.0` before
 starting the manual HA rehearsal. This module implements `fetch`, `audit`,
 `probe`, `check-recovery` and `rehearse --phase prepare`. It does not create
 clusters or execute upgrades.
@@ -14,31 +14,32 @@ No new third-party dependencies are required.
 
 Run from the repository root. Every output directory must be new; keep its
 parent private. Fetch uses the existing authenticated `gh` CLI to download
-original stack release inventories. Route versions identify Self-Managed
-stack tags. Each endpoint selects Compute Plane and Observability from its
-recorded documentation matrix. The lock rejects peers that differ from that
-matrix. The matrix's documented control plane does not replace the issue's
-exact stack endpoint; unresolved compatibility differences remain blockers.
+original stack release inventories. Route versions identify umbrella releases.
+Version 1.0.1 is an explicit legacy baseline without an umbrella manifest.
+Umbrella 1.0.4 selects control 1.0.10, compute 1.0.5 and Observability 1.0.0.
+Umbrella 1.1.0 selects control 1.1.5, compute 1.1.0 and Observability 1.1.0.
+The loader checks all three stacks against pinned manifests and documentation matrices.
 
 ```sh
-go build -C tools/ncp-local-cluster/upgrade-lab -o /tmp/nvcf-upgrade-lab .
+go -C tools/ncp-local-cluster/upgrade-lab build -o /tmp/nvcf-upgrade-lab .
 umask 077
 export UPGRADE_RECORD="$(mktemp -d)"
 
-/tmp/nvcf-upgrade-lab fetch --route 1.0.1-to-1.0.4 \
+/tmp/nvcf-upgrade-lab fetch --route umbrella-1.0.1-to-1.0.4 \
   --out "$UPGRADE_RECORD/inputs-101-104"
-/tmp/nvcf-upgrade-lab audit --route 1.0.1-to-1.0.4 \
+/tmp/nvcf-upgrade-lab audit --route umbrella-1.0.1-to-1.0.4 \
   --inputs "$UPGRADE_RECORD/inputs-101-104" --out "$UPGRADE_RECORD/audit-101-104"
 
-/tmp/nvcf-upgrade-lab fetch --route 1.0.4-to-1.1.5 \
-  --out "$UPGRADE_RECORD/inputs-104-115"
-/tmp/nvcf-upgrade-lab audit --route 1.0.4-to-1.1.5 \
-  --inputs "$UPGRADE_RECORD/inputs-104-115" --out "$UPGRADE_RECORD/audit-104-115"
+/tmp/nvcf-upgrade-lab fetch --route umbrella-1.0.4-to-1.1.0 \
+  --out "$UPGRADE_RECORD/inputs-104-110"
+/tmp/nvcf-upgrade-lab audit --route umbrella-1.0.4-to-1.1.0 \
+  --inputs "$UPGRADE_RECORD/inputs-104-110" --out "$UPGRADE_RECORD/audit-104-110"
 ```
 
-Fetch checks original inventory hashes and source tags/commits. A selection
-must name its exact control-plane stack version; product/docs mappings are
-rejected. Audit rechecks the inventories and writes `audit.json` and
+Fetch verifies remote manifest bytes at their pinned commits.
+It then checks original inventory hashes and source tags/commits.
+Audit rejects changed manifests or selections that differ from those manifests.
+Old stack-only route IDs fail validation. Their checkpoints cannot resume these routes. Audit rechecks the inventories and writes `audit.json` and
 `components.md`, including provenance and declared execution blockers.
 Comparison retains each consumer's helper versions. Multiple versions within
 one consumer require render review; the tool does not guess a version pairing.
@@ -81,9 +82,9 @@ never in command arguments. The file must not be committed.
 ```sh
 export UPGRADE_LAB_SOURCE_REPO="$PWD"
 # Optional: export UPGRADE_LAB_HELM_REPOSITORY_CONFIG=/private/repositories.json
-/tmp/nvcf-upgrade-lab probe --route 1.0.4-to-1.1.5 \
-  --inputs "$UPGRADE_RECORD/inputs-104-115" \
-  --out "$UPGRADE_RECORD/access-104-115" --timeout 30s
+/tmp/nvcf-upgrade-lab probe --route umbrella-1.0.4-to-1.1.0 \
+  --inputs "$UPGRADE_RECORD/inputs-104-110" \
+  --out "$UPGRADE_RECORD/access-104-110" --timeout 30s
 ```
 
 An access probe can report `running` while incomplete. Only `complete: true` and
@@ -133,7 +134,7 @@ stacks, then stops with `blocked` because compute render evidence is missing.
 This partial preparation cannot establish complete profile applicability.
 
 ```sh
-/tmp/nvcf-upgrade-lab rehearse --route 1.0.4-to-1.1.5 \
+/tmp/nvcf-upgrade-lab rehearse --route umbrella-1.0.4-to-1.1.0 \
   --run-config /private/upgrade-run.json \
   --run-dir /private/new-upgrade-run --phase prepare
 ```
@@ -176,7 +177,7 @@ versions can omit configuration fields that monitoring includes. Do not remove
 those fields to make a comparison pass.
 
 ```sh
-/tmp/nvcf-upgrade-lab check-recovery --route 1.0.4-to-1.1.5 \
+/tmp/nvcf-upgrade-lab check-recovery --route umbrella-1.0.4-to-1.1.0 \
   --baseline /private/frozen-nats-inventory.json \
   --checkpoint /private/paused-source-checkpoint.json \
   --out /private/new-recovery-check

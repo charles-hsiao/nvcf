@@ -1,31 +1,31 @@
-# Component transition: 1.0.4-to-1.1.5
+# Component transition: umbrella-1.0.4-to-1.1.0
 
 Qualification: unqualified. Inventory comparison does not prove runtime compatibility.
 
-Route versions identify Self-Managed stack releases. Peer stacks are selected separately.
+Route versions identify umbrella releases. Version 1.0.1 is a separate legacy baseline.
 
 Comparison includes optional releases. Inventory differences do not establish profile applicability or runtime failure.
 
 Blank cells mean no entry in that consumer's inventory. They do not establish runtime absence. Added and removed counts describe inventory entries.
 
-Endpoint 1.0.4 peer selection: [Docs 1.0.4 matrix](https://docs.nvidia.com/nvcf/1.0.4/release-notes/compatibility-matrix).
+Endpoint 1.0.4 reference: [Docs 1.0.4 matrix](https://docs.nvidia.com/nvcf/1.0.4/release-notes/compatibility-matrix).
 
-Endpoint 1.1.5 peer selection: [Docs 1.1.0 matrix](https://docs.nvidia.com/nvcf/1.1.0/release-notes/compatibility-matrix).
+Endpoint 1.1.0 reference: [Docs 1.1.0 matrix](https://docs.nvidia.com/nvcf/1.1.0/release-notes/compatibility-matrix).
 
-Artifact lock: `sha256:a1e92a236922b2bdf790fc11a01670a6a9aeab5a5af2fc25f575a044261fb845`
+Artifact lock: `sha256:6efc4c27e90b7f006dbcfa59914c0568f499a4a2084a7bc4d2ce6199878ab50d`
 
-Contract: `sha256:34b07ac851a08aff369a028198f5f8ffb4e153ece74a00239884ac236f98c0e3`
+Contract: `sha256:263d784e519535e1826fcf97cceb38754e0a86b6f066b9c2b53ec9566e394698`
 
 | Endpoint | Plane | Stack version | Source tag | Source commit | Inventory SHA-256 |
 | --- | --- | --- | --- | --- | --- |
-| 1.0.4 | control-plane | 1.0.4 | `deploy/stacks/self-managed/v1.0.4` | `826d641cd9d1dbea987e28b8e90fdc266a6e5610` | `sha256:9f109ccb23502558fda05ce436a556ee95dadced09bb07d8eb05fbe144a048c3` |
+| 1.0.4 | control-plane | 1.0.10 | `deploy/stacks/self-managed/v1.0.10` | `e4b11e6db4ec8ff2af228579493685eca391447f` | `sha256:aedbabdde512c3956bf716033a2d0d8ea08c2fbb1c7992e8e018f9ce2c2a81db` |
 | 1.0.4 | compute-plane | 1.0.5 | `deploy/stacks/nvcf-compute-plane/v1.0.5` | `e6d55edf173c622f3e925cb4650051e3abc9ddfb` | `sha256:cd6a9081fc4777073a437fdfbd343e0cd365502a4478143896e73d5d79a74e33` |
 | 1.0.4 | observability | 1.0.0 | `deploy/stacks/observability/v1.0.0` | `b77e96a3f8c18e9318b93e697e33e596c4ede7d7` | `sha256:28ff55447c9223be0472ce9157fa9f4eb6dc7c5092a7c4281e29826e9f3df6de` |
-| 1.1.5 | control-plane | 1.1.5 | `deploy/stacks/self-managed/v1.1.5` | `e11b44050c3770d650d5fd4bf0b8e8bebca6786c` | `sha256:2e4ce14b997e2ceda8dbdd54419193ccdc65a1cffe65734d7d3bada3c4f2543f` |
-| 1.1.5 | compute-plane | 1.1.0 | `deploy/stacks/nvcf-compute-plane/v1.1.0` | `507d8e2ece81d04b8e63f6be31a0ea2d83561b4b` | `sha256:ee76f728cfdf8d23ded4e5e63cba0e96bb3a53b7055e5ebb966204d33f27c9d1` |
-| 1.1.5 | observability | 1.1.0 | `deploy/stacks/observability/v1.1.0` | `d1918a811df7e7bc6be7d6cc625844b6f5e30b42` | `sha256:3833771ad85f14af832fcd60b9de95a48dd05af2f5e666c5a5d6324a5af91c82` |
+| 1.1.0 | control-plane | 1.1.5 | `deploy/stacks/self-managed/v1.1.5` | `e11b44050c3770d650d5fd4bf0b8e8bebca6786c` | `sha256:2e4ce14b997e2ceda8dbdd54419193ccdc65a1cffe65734d7d3bada3c4f2543f` |
+| 1.1.0 | compute-plane | 1.1.0 | `deploy/stacks/nvcf-compute-plane/v1.1.0` | `507d8e2ece81d04b8e63f6be31a0ea2d83561b4b` | `sha256:ee76f728cfdf8d23ded4e5e63cba0e96bb3a53b7055e5ebb966204d33f27c9d1` |
+| 1.1.0 | observability | 1.1.0 | `deploy/stacks/observability/v1.1.0` | `d1918a811df7e7bc6be7d6cc625844b6f5e30b42` | `sha256:3833771ad85f14af832fcd60b9de95a48dd05af2f5e666c5a5d6324a5af91c82` |
 
-Changed: 66; added: 2; removed: 2; backward: 1; unordered: 0.
+Changed: 69; added: 2; removed: 2; backward: 12; unordered: 0.
 
 ## Runtime artifact checks
 
@@ -33,10 +33,10 @@ Changed: 66; added: 2; removed: 2; backward: 1; unordered: 0.
 
 ## Execution blockers
 
+- The umbrella scope changes the control-plane endpoint to stack 1.0.10. Recheck action ordering, effective configuration, migration/runtime behavior and recovery for these exact inputs. Prior stack 1.0.4 rehearsals do not satisfy this gate.
 - Before supported execution, bind enabled-profile artifact coverage and migration/runtime acceptance to the exact artifacts, configuration, topology and current run.
 - Require matching HA preservation, mixed-fleet, consistent restore and end-to-end workload evidence for the intended profile. Scoped laboratory acceptance does not qualify broader configurations or failure recovery.
-- Docs 1.0.4 selects Self-Managed 1.0.10. Using its peer versions with exact stack 1.0.4 requires route-specific compatibility review and evidence for the declared temporary combinations; do not substitute the documented control-plane version.
-- For the selected OpenBao images, verify the live catalog and plugin hashes, Raft/member rotation, retained issuer/key/mount identities, old/new JWTs and fresh injection. Equal plugin payloads do not replace these runtime checks.
+- For the selected OpenBao images, verify the live catalog and plugin hashes, Raft/member rotation, retained issuer/key/mount identities, old/new JWTs and fresh injection. Compare actual selected plugin bytes and bridge requirements before applying either route.
 - Before backup or any hop action, require source-data-prerequisites with zero missing live requests, mismatches or failures; preserve the validated data epoch through the backup.
 - For drained-memory-cold-restore, require matching paused-source observations and consistent isolated full-cohort restore acceptance. Nonempty or in-flight memory recovery remains unsupported; an earlier restore does not establish recovery from a later migration failure.
 
@@ -58,6 +58,20 @@ Required evidence:
 - source and target rendered Dynamo/NATS manifests and exact reloader image references, or verified absence at both endpoints
 - when applicable: image/chart change comparison, fix-retention review and runtime configuration-reload results
 
+### control-artifact-regressions
+
+Applies when: Effective source/target values and renders select backward or removed control-plane artifacts from the component report.
+
+- When applicable: Block the affected action until artifact compatibility, retained fixes, data formats and recovery pass review and runtime checks. Review cert-manager, NATS, OpenBao, migration consumers and receipt helpers separately.
+- When not applicable: Record values and renders that establish absence. Unexpected removal of an enabled feature requires a separate preservation review.
+- When unknown: Stop before the affected action until effective values and rendered references establish applicability. A newer umbrella number does not establish forward component selection.
+
+Required evidence:
+
+- effective values and rendered artifact references
+- artifact and retained-fix comparisons
+- applicable data, lifecycle, workload and recovery results
+
 ## Component changes
 
 | Plane | Consumer | Type | Name | Source | Target | Review |
@@ -73,20 +87,23 @@ Required evidence:
 | compute-plane | nvcf-kai-topology | helm-chart | nvcf-cluster-topology | https://github.com/NVIDIA/nvcf/tree/e6d55edf173c622f3e925cb4650051e3abc9ddfb/deploy/stacks/nvcf-compute-plane/charts/nvcf-cluster-topology@0.1.0 | https://github.com/NVIDIA/nvcf/tree/507d8e2ece81d04b8e63f6be31a0ea2d83561b4b/deploy/stacks/nvcf-compute-plane/charts/nvcf-cluster-topology@0.1.0 | Same version at a different location; verify byte identity |
 | control-plane | admin-issuer-proxy | container-image | admin-token-issuer-proxy | nvcr.io/nvidia/nvcf/admin-token-issuer-proxy:1.1.2 | nvcr.io/nvidia/nvcf/admin-token-issuer-proxy:1.1.3 |  |
 | control-plane | admin-issuer-proxy | helm-chart | helm-admin-token-issuer-proxy | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-admin-token-issuer-proxy@1.5.3 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-admin-token-issuer-proxy@1.7.0 |  |
-| control-plane | api-keys | container-image | nvcf-api-keys-service | nvcr.io/nvidia/nvcf/nvcf-api-keys-service:1.9.3 | nvcr.io/nvidia/nvcf/nvcf-api-keys-service:1.10.10 |  |
-| control-plane | api-keys | helm-chart | helm-nvcf-api-keys | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-api-keys@1.8.1 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-api-keys@1.9.4 |  |
+| control-plane | api-keys | container-image | nvcf-api-keys-service | nvcr.io/nvidia/nvcf/nvcf-api-keys-service:1.9.4 | nvcr.io/nvidia/nvcf/nvcf-api-keys-service:1.10.10 |  |
+| control-plane | api-keys | helm-chart | helm-nvcf-api-keys | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-api-keys@1.8.2 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-api-keys@1.9.4 |  |
 | control-plane | api | container-image | ess-agent | nvcr.io/nvidia/nvcf/ess-agent:1.4.4 | nvcr.io/nvidia/nvcf/ess-agent:1.4.5 |  |
-| control-plane | api | container-image | nvcf-service-oss | nvcr.io/nvidia/nvcf/nvcf-service-oss:1.18.1 | nvcr.io/nvidia/nvcf/nvcf-service-oss:1.28.4 |  |
+| control-plane | api | container-image | nvcf-service-oss | nvcr.io/nvidia/nvcf/nvcf-service-oss:1.18.2 | nvcr.io/nvidia/nvcf/nvcf-service-oss:1.28.4 |  |
 | control-plane | api | container-image | nvcf-worker-init-oss | nvcr.io/nvidia/nvcf/nvcf-worker-init-oss:1.2.4 | nvcr.io/nvidia/nvcf/nvcf-worker-init-oss:1.3.2 |  |
 | control-plane | api | container-image | nvcf-worker-llm-credentials-oss | nvcr.io/nvidia/nvcf/nvcf-worker-llm-credentials-oss:1.1.5 | nvcr.io/nvidia/nvcf/nvcf-worker-llm-credentials-oss:1.2.2 |  |
 | control-plane | api | container-image | nvcf-worker-utils-oss | nvcr.io/nvidia/nvcf/nvcf-worker-utils-oss:1.2.6 | nvcr.io/nvidia/nvcf/nvcf-worker-utils-oss:1.4.2 |  |
-| control-plane | api | container-image | nvcf_worker_niclls | nvcr.io/nvidia/nvcf/nvcf_worker_niclls:2.110.0 | nvcr.io/nvidia/nvcf/nvcf_worker_niclls:2.118.2 |  |
-| control-plane | api | helm-chart | helm-nvcf-api | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-api@1.27.2 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-api@1.35.0 |  |
-| control-plane | cassandra | container-image | cassandra | nvcr.io/nvidia/nvcf/cassandra:5.0.9-nv-2.0.5 | nvcr.io/nvidia/nvcf/cassandra:5.0.9-nv-2.0.7 |  |
-| control-plane | cassandra | container-image | nvcf-cassandra-migrations | nvcr.io/nvidia/nvcf/nvcf-cassandra-migrations:0.17.7 | nvcr.io/nvidia/nvcf/nvcf-cassandra-migrations:0.19.4 |  |
-| control-plane | cassandra | helm-chart | helm-nvcf-cassandra | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-cassandra@0.21.3 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-cassandra@0.26.0 |  |
-| control-plane | ess-api | container-image | nvcf-ess | nvcr.io/nvidia/nvcf/nvcf-ess:0.5.4 | nvcr.io/nvidia/nvcf/nvcf-ess:0.5.7 |  |
-| control-plane | ess-api | helm-chart | helm-nvcf-ess-api | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-ess-api@1.8.2 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-ess-api@1.11.1 |  |
+| control-plane | api | helm-chart | helm-nvcf-api | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-api@1.27.5 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-api@1.35.0 |  |
+| control-plane | cassandra | container-image | nvcf-cassandra-migrations | nvcr.io/nvidia/nvcf/nvcf-cassandra-migrations:0.17.8 | nvcr.io/nvidia/nvcf/nvcf-cassandra-migrations:0.19.4 |  |
+| control-plane | cassandra | helm-chart | helm-nvcf-cassandra | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-cassandra@0.21.4 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-cassandra@0.26.0 |  |
+| control-plane | cert-manager | container-image | cert-manager-acmesolver | quay.io/jetstack/cert-manager-acmesolver:v1.20.5 | quay.io/jetstack/cert-manager-acmesolver:v1.20.2 | Backward inventory selection; check enabled/rendered use before requiring compatibility evidence |
+| control-plane | cert-manager | container-image | cert-manager-cainjector | quay.io/jetstack/cert-manager-cainjector:v1.20.5 | nvcr.io/nvidia/nvcf/cert-manager-cainjector:v1.20.2 | Backward inventory selection; check enabled/rendered use before requiring compatibility evidence |
+| control-plane | cert-manager | container-image | cert-manager-controller | quay.io/jetstack/cert-manager-controller:v1.20.5 | nvcr.io/nvidia/nvcf/cert-manager-controller:v1.20.2 | Backward inventory selection; check enabled/rendered use before requiring compatibility evidence |
+| control-plane | cert-manager | container-image | cert-manager-startupapicheck | quay.io/jetstack/cert-manager-startupapicheck:v1.20.5 | nvcr.io/nvidia/nvcf/cert-manager-startupapicheck:v1.20.2 | Backward inventory selection; check enabled/rendered use before requiring compatibility evidence |
+| control-plane | cert-manager | container-image | cert-manager-webhook | quay.io/jetstack/cert-manager-webhook:v1.20.5 | nvcr.io/nvidia/nvcf/cert-manager-webhook:v1.20.2 | Backward inventory selection; check enabled/rendered use before requiring compatibility evidence |
+| control-plane | cert-manager | helm-chart | helm-nvcf-cert-manager | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-cert-manager@0.2.0 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-cert-manager@0.1.0 | Backward inventory selection; check enabled/rendered use before requiring compatibility evidence |
+| control-plane | ess-api | helm-chart | helm-nvcf-ess-api | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-ess-api@1.8.3 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-ess-api@1.11.1 |  |
 | control-plane | event-ledger | container-image | nvcf-event-ledger |  | nvcr.io/nvidia/nvcf/nvcf-event-ledger:0.21.0 |  |
 | control-plane | event-ledger | helm-chart | helm-nvcf-event-ledger |  | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-event-ledger@0.10.0 |  |
 | control-plane | function-autoscaler | container-image | nvcf-function-autoscaler | nvcr.io/nvidia/nvcf/nvcf-function-autoscaler:1.21.10 | nvcr.io/nvidia/nvcf/nvcf-function-autoscaler:1.23.1 |  |
@@ -97,37 +114,37 @@ Required evidence:
 | control-plane | invocation-service | helm-chart | helm-nvcf-invocation-service | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-invocation-service@1.6.2 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-invocation-service@1.9.0 |  |
 | control-plane | llm-api-gateway | container-image | llm-api-gateway | nvcr.io/nvidia/nvcf/llm-api-gateway:0.14.11 | nvcr.io/nvidia/nvcf/llm-api-gateway:0.20.1 |  |
 | control-plane | llm-api-gateway | helm-chart | helm-nvcf-llm-api-gateway | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-llm-api-gateway@1.4.3 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-llm-api-gateway@1.12.0 |  |
-| control-plane | llm-request-router | container-image | nvcf-openbao-migrations | nvcr.io/nvidia/nvcf/nvcf-openbao-migrations:0.19.9 |  | Verify removal and old consumers before contract changes |
+| control-plane | llm-request-router | container-image | nvcf-openbao-migrations | nvcr.io/nvidia/nvcf/nvcf-openbao-migrations:0.19.11 |  | Verify removal and old consumers before contract changes |
 | control-plane | llm-request-router | container-image | pylon | nvcr.io/nvidia/nvcf/pylon:0.18.3 | nvcr.io/nvidia/nvcf/pylon:0.29.2 |  |
 | control-plane | llm-request-router | container-image | stargate | nvcr.io/nvidia/nvcf/stargate:0.18.3 | nvcr.io/nvidia/nvcf/stargate:0.29.2 |  |
-| control-plane | llm-request-router | helm-chart | helm-nvcf-llm-request-router | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-llm-request-router@1.14.2 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-llm-request-router@1.18.2 |  |
+| control-plane | llm-request-router | helm-chart | helm-nvcf-llm-request-router | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-llm-request-router@1.14.3 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-llm-request-router@1.18.2 |  |
 | control-plane | nats-auth-callout-service | container-image | nvcf-nats-auth-callout-service | nvcr.io/nvidia/nvcf/nvcf-nats-auth-callout-service:0.8.6 | nvcr.io/nvidia/nvcf/nvcf-nats-auth-callout-service:0.8.8 |  |
 | control-plane | nats-auth-callout-service | helm-chart | helm-nvcf-nats-auth-callout-service | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-nats-auth-callout-service@1.2.1 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-nats-auth-callout-service@1.4.2 |  |
-| control-plane | nats | container-image | nats-box | nvcr.io/nvidia/nvcf/nats-box:0.19.7-nonroot | docker.io/natsio/nats-box:0.20.1-nonroot |  |
-| control-plane | nats | helm-chart | helm-nvcf-nats | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-nats@0.8.4 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-nats@0.9.0 |  |
-| control-plane | notary-service | container-image | nvcf-notary | nvcr.io/nvidia/nvcf/nvcf-notary:1.14.5 | nvcr.io/nvidia/nvcf/nvcf-notary:1.14.8 |  |
-| control-plane | notary-service | helm-chart | helm-nvcf-notary-service | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-notary-service@1.6.0 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-notary-service@1.9.1 |  |
+| control-plane | nats | container-image | nats-server | docker.io/synadia/nats-server:2.14.9-alpine3.22 | docker.io/synadia/nats-server:2.14.6-alpine3.22 | Backward inventory selection; check enabled/rendered use before requiring compatibility evidence |
+| control-plane | nats | container-image | nats-server-config-reloader | docker.io/natsio/nats-server-config-reloader:0.25.0 | docker.io/natsio/nats-server-config-reloader:0.24.0 | Backward inventory selection; check enabled/rendered use before requiring compatibility evidence |
+| control-plane | nats | helm-chart | helm-nvcf-nats | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-nats@0.8.6 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-nats@0.9.0 |  |
+| control-plane | notary-service | helm-chart | helm-nvcf-notary-service | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-notary-service@1.6.1 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-notary-service@1.9.1 |  |
 | control-plane | nvcf-pki | helm-chart | helm-nvcf-pki | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-pki@0.1.0 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-pki@0.2.0 |  |
-| control-plane | nvcf-ui | container-image | nvcf-openbao-migrations | nvcr.io/nvidia/nvcf/nvcf-openbao-migrations:0.19.9 | nvcr.io/nvidia/nvcf/nvcf-openbao-migrations:0.19.10 |  |
-| control-plane | nvcf-ui | helm-chart | helm-nvcf-ui | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-ui@1.1.3 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-ui@1.1.4 |  |
+| control-plane | nvcf-ui | container-image | nvcf-openbao-migrations | nvcr.io/nvidia/nvcf/nvcf-openbao-migrations:0.19.11 | nvcr.io/nvidia/nvcf/nvcf-openbao-migrations:0.19.10 | Backward inventory selection; check enabled/rendered use before requiring compatibility evidence |
 | control-plane | nvct-api | container-image | ess-agent | nvcr.io/nvidia/nvcf/ess-agent:1.4.4 | nvcr.io/nvidia/nvcf/ess-agent:1.4.5 |  |
 | control-plane | nvct-api | container-image | nvcf-worker-init-oss | nvcr.io/nvidia/nvcf/nvcf-worker-init-oss:1.2.4 | nvcr.io/nvidia/nvcf/nvcf-worker-init-oss:1.3.2 |  |
 | control-plane | nvct-api | container-image | nvcf-worker-task-oss | nvcr.io/nvidia/nvcf/nvcf-worker-task-oss:1.1.6 | nvcr.io/nvidia/nvcf/nvcf-worker-task-oss:1.2.4 |  |
-| control-plane | nvct-api | container-image | nvct-service-oss | nvcr.io/nvidia/nvcf/nvct-service-oss:1.66.1 | nvcr.io/nvidia/nvcf/nvct-service-oss:1.70.4 |  |
-| control-plane | nvct-api | helm-chart | helm-nvcf-nvct-api | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-nvct-api@1.6.0 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-nvct-api@1.11.0 |  |
-| control-plane | openbao-server | container-image | nvcf-openbao | nvcr.io/nvidia/nvcf/nvcf-openbao:2.6.2-nv-1.3.4 | nvcr.io/nvidia/nvcf/nvcf-openbao:2.6.3-nv-1.3.7 |  |
-| control-plane | openbao-server | container-image | nvcf-openbao-migrations | nvcr.io/nvidia/nvcf/nvcf-openbao-migrations:0.19.9 | nvcr.io/nvidia/nvcf/nvcf-openbao-migrations:0.23.1 |  |
-| control-plane | openbao-server | helm-chart | helm-nvcf-openbao-server | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-openbao-server@0.32.7 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-openbao-server@0.36.1 |  |
+| control-plane | nvct-api | container-image | nvct-service-oss | nvcr.io/nvidia/nvcf/nvct-service-oss:1.66.2 | nvcr.io/nvidia/nvcf/nvct-service-oss:1.70.4 |  |
+| control-plane | nvct-api | helm-chart | helm-nvcf-nvct-api | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-nvct-api@1.6.1 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-nvct-api@1.11.0 |  |
+| control-plane | openbao-server | container-image | nvcf-openbao | nvcr.io/nvidia/nvcf/nvcf-openbao:2.6.3-nv-1.3.9 | nvcr.io/nvidia/nvcf/nvcf-openbao:2.6.3-nv-1.3.7 | Backward inventory selection; check enabled/rendered use before requiring compatibility evidence |
+| control-plane | openbao-server | container-image | nvcf-openbao-migrations | nvcr.io/nvidia/nvcf/nvcf-openbao-migrations:0.19.11 | nvcr.io/nvidia/nvcf/nvcf-openbao-migrations:0.23.1 |  |
+| control-plane | openbao-server | helm-chart | helm-nvcf-openbao-server | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-openbao-server@0.32.9 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-openbao-server@0.36.1 |  |
 | control-plane | ratelimiter | container-image | nvcf-ratelimiter | nvcr.io/nvidia/nvcf/nvcf-ratelimiter:1.17.5 | nvcr.io/nvidia/nvcf/nvcf-ratelimiter:1.18.3 |  |
 | control-plane | ratelimiter | helm-chart | helm-nvcf-rate-limiter | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-rate-limiter@1.2.1 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-rate-limiter@1.4.1 |  |
 | control-plane | reval | container-image | reval-server | nvcr.io/nvidia/nvcf/reval-server:0.20.3 | nvcr.io/nvidia/nvcf/reval-server:0.20.4 |  |
 | control-plane | reval | helm-chart | helm-reval | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-reval@1.4.1 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-reval@1.6.0 |  |
-| control-plane | sis | container-image | icms-service-oss | nvcr.io/nvidia/nvcf/icms-service-oss:0.7.6 | nvcr.io/nvidia/nvcf/icms-service-oss:0.8.5 |  |
-| control-plane | sis | container-image | nvcf-openbao-migrations | nvcr.io/nvidia/nvcf/nvcf-openbao-migrations:0.19.9 |  | Verify removal and old consumers before contract changes |
-| control-plane | sis | helm-chart | helm-nvcf-sis | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-sis@2.4.1 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-sis@2.6.3 |  |
+| control-plane | sis | container-image | icms-service-oss | nvcr.io/nvidia/nvcf/icms-service-oss:0.7.7 | nvcr.io/nvidia/nvcf/icms-service-oss:0.8.5 |  |
+| control-plane | sis | container-image | nvcf-openbao-migrations | nvcr.io/nvidia/nvcf/nvcf-openbao-migrations:0.19.11 |  | Verify removal and old consumers before contract changes |
+| control-plane | sis | helm-chart | helm-nvcf-sis | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-sis@2.4.2 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-sis@2.6.3 |  |
 | control-plane | state-metrics | container-image | nvcf-state-metrics-service | nvcr.io/nvidia/nvcf/nvcf-state-metrics-service:1.23.7 | nvcr.io/nvidia/nvcf/nvcf-state-metrics-service:1.24.1 |  |
 | control-plane | state-metrics | helm-chart | helm-nvcf-state-metrics | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-state-metrics@1.0.2 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-state-metrics@1.0.7 |  |
-| control-plane | upgrade-receipt | helm-chart | nvcf-upgrade-receipt | https://github.com/NVIDIA/nvcf/tree/826d641cd9d1dbea987e28b8e90fdc266a6e5610/deploy/stacks/self-managed/charts/nvcf-upgrade-receipt@0.1.0 | https://github.com/NVIDIA/nvcf/tree/e11b44050c3770d650d5fd4bf0b8e8bebca6786c/deploy/stacks/self-managed/charts/nvcf-upgrade-receipt@0.1.0 | Same version at a different location; verify byte identity |
+| control-plane | upgrade-receipt | container-image | k8s | docker.io/alpine/k8s:1.37.0 | docker.io/alpine/k8s:1.33.1 | Backward inventory selection; check enabled/rendered use before requiring compatibility evidence |
+| control-plane | upgrade-receipt | helm-chart | nvcf-upgrade-receipt | https://github.com/NVIDIA/nvcf/tree/e4b11e6db4ec8ff2af228579493685eca391447f/deploy/stacks/self-managed/charts/nvcf-upgrade-receipt@0.1.0 | https://github.com/NVIDIA/nvcf/tree/e11b44050c3770d650d5fd4bf0b8e8bebca6786c/deploy/stacks/self-managed/charts/nvcf-upgrade-receipt@0.1.0 | Same version at a different location; verify byte identity |
 | control-plane | vanity-gateway | container-image | nvcf-ai-api-gateway-service | nvcr.io/nvidia/nvcf/nvcf-ai-api-gateway-service:1.35.3 | nvcr.io/nvidia/nvcf/nvcf-ai-api-gateway-service:1.42.0 |  |
 | control-plane | vanity-gateway | helm-chart | helm-nvcf-vanity-gateway | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-vanity-gateway@0.5.0 | https://helm.ngc.nvidia.com/nvidia/nvcf/helm-nvcf-vanity-gateway@0.11.0 |  |
 | observability | default-monitors | helm-chart | nvcf-default-monitors | https://github.com/NVIDIA/nvcf/tree/b77e96a3f8c18e9318b93e697e33e596c4ede7d7/deploy/stacks/observability/charts/nvcf-default-monitors@0.2.0 | https://github.com/dsx-ai-factory/nvcf/tree/d1918a811df7e7bc6be7d6cc625844b6f5e30b42/deploy/stacks/observability/charts/nvcf-default-monitors@0.3.0 |  |

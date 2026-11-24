@@ -27,15 +27,17 @@ type artifactLock struct {
 	DocumentationMatrices []documentationMatrix `json:"documentation_matrices"`
 }
 type documentationMatrix struct {
-	Edition string            `json:"edition"`
-	URL     string            `json:"url"`
-	Stacks  map[string]string `json:"documented_stacks"`
+	Edition      string            `json:"edition"`
+	URL          string            `json:"url"`
+	SourceCommit string            `json:"source_commit"`
+	Stacks       map[string]string `json:"documented_stacks"`
 }
 type selection struct {
 	Version           string              `json:"version"`
 	Kind              string              `json:"kind"`
 	Stacks            map[string]stackRef `json:"stacks"`
 	PeerMatrixEdition string              `json:"peer_matrix_edition"`
+	Manifest          *manifestRef        `json:"manifest,omitempty"`
 }
 type stackRef struct {
 	Version string `json:"version"`
@@ -80,24 +82,25 @@ type conditionalCheck struct {
 	Evidence          []string `json:"evidence"`
 }
 type routeContract struct {
-	SHA256                string             `json:"-"`
-	SchemaVersion         int                `json:"schema_version"`
-	VersionScope          string             `json:"version_scope"`
-	ID                    string             `json:"id"`
-	From                  string             `json:"from"`
-	To                    string             `json:"to"`
-	Qualification         string             `json:"qualification"`
-	Actions               []action           `json:"actions"`
-	DisabledReleases      []string           `json:"disabled_releases"`
-	ExecutionBlockers     []string           `json:"execution_blockers"`
-	ConditionalChecks     []conditionalCheck `json:"conditional_checks,omitempty"`
-	RuntimeArtifactChecks []string           `json:"runtime_artifact_checks,omitempty"`
-	RecoveryMode          string             `json:"recovery_mode,omitempty"`
+	SHA256                    string             `json:"-"`
+	SchemaVersion             int                `json:"schema_version"`
+	VersionScope              string             `json:"version_scope"`
+	ID                        string             `json:"id"`
+	From                      string             `json:"from"`
+	To                        string             `json:"to"`
+	Qualification             string             `json:"qualification"`
+	SupportedExecutionEnabled *bool              `json:"supported_execution_enabled"`
+	Actions                   []action           `json:"actions"`
+	DisabledReleases          []string           `json:"disabled_releases"`
+	ExecutionBlockers         []string           `json:"execution_blockers"`
+	ConditionalChecks         []conditionalCheck `json:"conditional_checks,omitempty"`
+	RuntimeArtifactChecks     []string           `json:"runtime_artifact_checks,omitempty"`
+	RecoveryMode              string             `json:"recovery_mode,omitempty"`
 }
 
 var digestPattern = regexp.MustCompile(`^sha256:[0-9a-f]{64}$`)
 var commitPattern = regexp.MustCompile(`^[0-9a-f]{40}$`)
-var routePattern = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+-to-[0-9]+\.[0-9]+\.[0-9]+$`)
+var routePattern = regexp.MustCompile(`^umbrella-[0-9]+\.[0-9]+\.[0-9]+-to-[0-9]+\.[0-9]+\.[0-9]+$`)
 var planes = []string{"control-plane", "compute-plane", "observability"}
 
 func checksum(raw []byte) string {
@@ -114,12 +117,12 @@ func loadLock(path string) (artifactLock, error) {
 		return lock, err
 	}
 	lock.SHA256 = checksum(raw)
-	if lock.SchemaVersion != 1 || lock.VersionScope != "self-managed-stack" || lock.Repository != "dsx-ai-factory/nvcf" {
+	if lock.SchemaVersion != 2 || lock.VersionScope != "umbrella-release" || lock.Repository != "dsx-ai-factory/nvcf" {
 		return lock, errors.New("unsupported artifact lock")
 	}
 	matrices := map[string]documentationMatrix{}
 	for _, m := range lock.DocumentationMatrices {
-		if m.Edition == "" || matrices[m.Edition].Edition != "" || len(m.Stacks) != len(planes) || m.URL != "https://docs.nvidia.com/nvcf/"+m.Edition+"/release-notes/compatibility-matrix" {
+		if m.Edition == "" || !commitPattern.MatchString(m.SourceCommit) || matrices[m.Edition].Edition != "" || len(m.Stacks) != len(planes) || m.URL != "https://docs.nvidia.com/nvcf/"+m.Edition+"/release-notes/compatibility-matrix" {
 			return lock, errors.New("invalid or duplicate documentation matrix")
 		}
 		for _, p := range planes {
@@ -136,9 +139,6 @@ func loadLock(path string) (artifactLock, error) {
 			return lock, errors.New("invalid or duplicate selection")
 		}
 		seen[s.Version] = true
-		if s.Kind != "self-managed-stack" || s.Stacks["control-plane"].Version != s.Version {
-			return lock, errors.New("selection must name its exact Self-Managed stack version, not a product or docs edition")
-		}
 		matrix, ok := matrices[s.PeerMatrixEdition]
 		if !ok {
 			return lock, fmt.Errorf("peer documentation matrix for %s is not recorded", s.Version)
@@ -150,7 +150,7 @@ func loadLock(path string) (artifactLock, error) {
 			if !ok || v.Version == "" || v.Tag != "deploy/stacks/"+prefix+"/v"+v.Version || !commitPattern.MatchString(v.Commit) || !digestPattern.MatchString(v.SHA256) || v.AssetID <= 0 || v.Asset != "nvcf-"+asset+"-stack-inventory.json" {
 				return lock, fmt.Errorf("invalid %s identity for %s", p, s.Version)
 			}
-			if p != "control-plane" && v.Version != matrix.Stacks[p] {
+			if v.Version != matrix.Stacks[p] {
 				return lock, fmt.Errorf("peer stack %s for %s differs from docs matrix %s", p, s.Version, matrix.Edition)
 			}
 			name := inventoryName(p, v)
@@ -158,6 +158,11 @@ func loadLock(path string) (artifactLock, error) {
 				return lock, fmt.Errorf("conflicting inventory reference for %s", name)
 			}
 			inventories[name] = v
+		}
+	}
+	for _, s := range lock.Selections {
+		if err := validateSelection(filepath.Dir(path), s); err != nil {
+			return lock, fmt.Errorf("endpoint %s: %w", s.Version, err)
 		}
 	}
 	return lock, nil
@@ -173,7 +178,7 @@ func (l artifactLock) selection(version string) (selection, error) {
 func loadRoute(path, id string, lock artifactLock) (routeContract, error) {
 	var r routeContract
 	if !routePattern.MatchString(id) {
-		return r, errors.New("provide an exact route ID, for example 1.0.1-to-1.0.4")
+		return r, errors.New("provide an umbrella route ID, for example umbrella-1.0.1-to-1.0.4")
 	}
 	raw, err := os.ReadFile(path)
 	if err != nil {
@@ -183,7 +188,7 @@ func loadRoute(path, id string, lock artifactLock) (routeContract, error) {
 		return r, err
 	}
 	r.SHA256 = checksum(raw)
-	if r.SchemaVersion != 1 || r.VersionScope != "self-managed-stack" || r.ID != id || r.ID != r.From+"-to-"+r.To || r.From == r.To || r.Qualification != "unqualified" || len(r.Actions) == 0 {
+	if r.SchemaVersion != 2 || r.VersionScope != "umbrella-release" || r.ID != id || r.ID != "umbrella-"+r.From+"-to-"+r.To || r.From == r.To || r.Qualification != "unqualified" || r.SupportedExecutionEnabled == nil || *r.SupportedExecutionEnabled || len(r.Actions) == 0 {
 		return r, errors.New("invalid or unsupported rehearsal contract")
 	}
 	if _, err := lock.selection(r.From); err != nil {
@@ -274,14 +279,37 @@ func execute(ctx context.Context, name string, args ...string) ([]byte, error) {
 	return exec.CommandContext(ctx, name, args...).CombinedOutput()
 }
 func fetchInputs(ctx context.Context, lock artifactLock, r routeContract, out string, timeout time.Duration) error {
+	return fetchInputsWithExecutor(ctx, lock, r, out, timeout, execute)
+}
+
+func fetchInputsWithExecutor(ctx context.Context, lock artifactLock, r routeContract, out string, timeout time.Duration, exec executor) error {
 	fetch := func(path string) ([]byte, error) {
 		c, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
-		raw, err := execute(c, "gh", "api", "-H", "Accept: application/octet-stream", path)
+		raw, err := exec(c, "gh", "api", "-H", "Accept: application/octet-stream", path)
 		if err != nil {
 			return nil, fmt.Errorf("GitHub input download failed for %s", path)
 		}
 		return raw, nil
+	}
+	for _, version := range []string{r.From, r.To} {
+		selected, err := lock.selection(version)
+		if err != nil {
+			return err
+		}
+		if selected.Manifest == nil {
+			continue
+		}
+		ref := selected.Manifest
+		c, cancel := context.WithTimeout(ctx, timeout)
+		raw, err := exec(c, "gh", "api", "-H", "Accept: application/vnd.github.raw+json", fmt.Sprintf("repos/%s/contents/deploy/releases/%s/manifest.json?ref=%s", lock.Repository, selected.Version, ref.SourceCommit))
+		cancel()
+		if err != nil {
+			return fmt.Errorf("download umbrella manifest for %s: %w", selected.Version, err)
+		}
+		if checksum(raw) != ref.SHA256 {
+			return fmt.Errorf("remote umbrella manifest digest mismatch for %s", selected.Version)
+		}
 	}
 	seen := map[string]bool{}
 	for _, version := range []string{r.From, r.To} {
