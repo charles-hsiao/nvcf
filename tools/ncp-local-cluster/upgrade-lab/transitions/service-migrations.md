@@ -43,6 +43,12 @@ fields. A missing request is accepted only for a terminated instance.
    non-null deployment ID in each authoritative request used for deployment
    lookup. Apply the same check to GPU-spec IDs where that lookup is required.
    Missing authoritative IDs require a reviewed repair before proceeding.
+   Before the first `MIGRATE`, save a private pre-repair record of the complete
+   retained cohort: instance/request identities, existing instance lookup
+   fields and authoritative request lookup values, including nulls. Bind it
+   to the paused data epoch and timestamp, and retain its digest. If no earlier
+   record exists, create this record now while writers remain paused. Keep it
+   available after a failed scan; it is separate from the later recovery backup.
 4. On SIS 0.7.6, set `ICMS_INSTANCE_LOOKUP_BACKFILL_TASK_MODE` through the
    native `sis.env` values. Use `MIGRATE` only when null fields need repair.
    Follow the partial-run recovery rules below if that scan fails.
@@ -75,7 +81,8 @@ Save available summaries and compare the current instance/request cohort.
 Permit another `MIGRATE` run only when all these conditions hold:
 
 - The same released SIS 0.7.6 task remains selected.
-- Authoritative requests remain unchanged from the recorded pre-repair cohort.
+- Authoritative requests remain unchanged from the values saved in the
+  pre-repair cohort record.
 - Each remaining null field has a non-null authoritative request value.
 - No non-null value conflicts with its request, no live request is missing,
   and no unexpected data changes occurred.
@@ -84,6 +91,8 @@ Under these conditions, repeat the same null-only `MIGRATE`, then `VALIDATE`.
 Repeat the independent null checks and cohort comparison. Existing completed
 repairs remain in place. Failed reads, changed requests, conflicts or unknown
 writes block a rerun until the migration owner defines a reviewed repair.
+An absent or unreadable pre-repair record also blocks a rerun. Do not substitute
+a post-repair record or assume that requests were unchanged after a partial run.
 Do not delete rows or recreate workloads to clear that block.
 
 Create the consistent backup only after every source-data check passes.
