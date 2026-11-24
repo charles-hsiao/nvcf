@@ -5,6 +5,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,8 +14,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// TestContainerCacheInventoryIncludesOptionalHelpers verifies the inventory uses
-// the chart's image defaults and includes its optional monitoring sidecar.
+// TestContainerCacheInventoryIncludesOptionalHelpers checks optional helper
+// coverage and verifies that each stack image override reaches the inventory.
 func TestContainerCacheInventoryIncludesOptionalHelpers(t *testing.T) {
 	root := docsVersionSyncRepoRoot(t)
 	config, err := loadResolvedInventoryConfig(root, filepath.Join(root, "deploy/stacks/nvcf-compute-plane/release-inventory.yaml"))
@@ -50,39 +51,68 @@ func TestContainerCacheInventoryIncludesOptionalHelpers(t *testing.T) {
 	if err := replaceResolvedInventoryStateChart(stateFile, "nvcf-container-cache", "nvcf-container-cache", chartPath, nil); err != nil {
 		t.Fatal(err)
 	}
-	state.BaseOverrides = append(state.BaseOverrides, "global.helm.sources.registry=nvcr.io", "global.helm.sources.repository=nvidia/nvcf")
-	source := stackSourceRelease{Version: "1.2.3", Tag: "deploy/stacks/nvcf-compute-plane/v1.2.3", Commit: strings.Repeat("a", 40)}
-	releases, manifests, _, err := collectResolvedInventoryState(root, copiedRoot, stateFile, t.TempDir(), source, *state,
-		os.Environ(), resolvedInventoryHelmSource{Registry: "nvcr.io", Repository: "nvidia/nvcf"}, config.PublishedChartRepository, nil, false, "", execResolvedInventoryCommandRunner{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	raw, err := json.Marshal(releases)
-	if err != nil {
-		t.Fatal(err)
-	}
-	inventory, err := generateResolvedStackInventory(source, []resolvedInventoryPlaneInput{{Name: state.Plane, ReleaseList: raw, ManifestByRelease: manifests}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(inventory.Releases) != 1 || inventory.Releases[0].Required {
-		t.Fatalf("expected one optional release: %+v", inventory.Releases)
-	}
-	valuesRaw, err := os.ReadFile(filepath.Join(root, chart.Path, "values.yaml"))
+	valuesRaw, err := os.ReadFile(filepath.Join(root, "deploy/stacks/nvcf-compute-plane/environments/base.yaml"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	var values struct {
-		Images struct {
-			Server       string `yaml:"server"`
-			Certificates string `yaml:"certificates"`
-			Exporter     string `yaml:"exporter"`
-		} `yaml:"images"`
+		ContainerCache map[string]struct {
+			Registry   string `yaml:"registry"`
+			Repository string `yaml:"repository"`
+			Tag        string `yaml:"tag"`
+		} `yaml:"containerCache"`
 	}
 	if err := yaml.Unmarshal(valuesRaw, &values); err != nil {
 		t.Fatal(err)
 	}
-	wanted := map[string]bool{values.Images.Server: false, values.Images.Certificates: false, values.Images.Exporter: false}
+	source := stackSourceRelease{Version: "1.2.3", Tag: "deploy/stacks/nvcf-compute-plane/v1.2.3", Commit: strings.Repeat("a", 40)}
+	for _, override := range []bool{false, true} {
+		t.Run(fmt.Sprintf("image overrides=%t", override), func(t *testing.T) {
+			renderState := *state
+			renderState.BaseOverrides = append([]string{}, state.BaseOverrides...)
+			renderState.BaseOverrides = append(renderState.BaseOverrides,
+				"global.helm.sources.registry=nvcr.io", "global.helm.sources.repository=nvidia/nvcf")
+			wanted := make(map[string]bool)
+			for _, name := range []string{"server", "exporter", "certificates", "init"} {
+				image := values.ContainerCache[name+"Image"]
+				if image.Registry == "" || image.Repository == "" || image.Tag == "" {
+					t.Fatalf("missing container-cache %s image values", name)
+				}
+				if override {
+					image.Registry = "mirror.example"
+					image.Repository = "offline/" + name
+					image.Tag = "override"
+					prefix := "containerCache." + name + "Image."
+					renderState.BaseOverrides = append(renderState.BaseOverrides,
+						prefix+"registry="+image.Registry, prefix+"repository="+image.Repository, prefix+"tag="+image.Tag)
+				}
+				wanted[fmt.Sprintf("%s/%s:%s", image.Registry, image.Repository, image.Tag)] = false
+			}
+			releases, manifests, _, err := collectResolvedInventoryState(root, copiedRoot, stateFile, t.TempDir(), source, renderState,
+				os.Environ(), resolvedInventoryHelmSource{Registry: "nvcr.io", Repository: "nvidia/nvcf"}, config.PublishedChartRepository, nil, false, "", execResolvedInventoryCommandRunner{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			raw, err := json.Marshal(releases)
+			if err != nil {
+				t.Fatal(err)
+			}
+			inventory, err := generateResolvedStackInventory(source,
+				[]resolvedInventoryPlaneInput{{Name: state.Plane, ReleaseList: raw, ManifestByRelease: manifests}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			assertOptionalContainerCacheArtifacts(t, inventory, wanted)
+		})
+	}
+}
+
+// assertOptionalContainerCacheArtifacts checks image coverage and stack ownership.
+func assertOptionalContainerCacheArtifacts(t *testing.T, inventory resolvedStackInventory, wanted map[string]bool) {
+	t.Helper()
+	if len(inventory.Releases) != 1 || inventory.Releases[0].Required {
+		t.Fatalf("expected one optional release: %+v", inventory.Releases)
+	}
 	chartSeen := false
 	for _, artifact := range inventory.Artifacts {
 		for _, source := range artifact.Sources {
@@ -94,7 +124,6 @@ func TestContainerCacheInventoryIncludesOptionalHelpers(t *testing.T) {
 			chartSeen = artifact.Name == "nvcf-container-cache"
 			continue
 		}
-		// Older source snapshots can contain additional helper images.
 		if _, ok := wanted[artifact.Reference]; ok {
 			wanted[artifact.Reference] = true
 		}

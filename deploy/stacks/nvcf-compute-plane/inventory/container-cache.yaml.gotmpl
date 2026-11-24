@@ -34,3 +34,8 @@ releases:
     values:
       - monitoring:
           enabled: {{ .Values.containerCache.monitoring }}
+        images:
+          server: {{ printf "%s/%s:%s" .Values.containerCache.serverImage.registry .Values.containerCache.serverImage.repository .Values.containerCache.serverImage.tag | quote }}
+          exporter: {{ printf "%s/%s:%s" .Values.containerCache.exporterImage.registry .Values.containerCache.exporterImage.repository .Values.containerCache.exporterImage.tag | quote }}
+          certificates: {{ printf "%s/%s:%s" .Values.containerCache.certificatesImage.registry .Values.containerCache.certificatesImage.repository .Values.containerCache.certificatesImage.tag | quote }}
+          init: {{ printf "%s/%s:%s" .Values.containerCache.initImage.registry .Values.containerCache.initImage.repository .Values.containerCache.initImage.tag | quote }}
