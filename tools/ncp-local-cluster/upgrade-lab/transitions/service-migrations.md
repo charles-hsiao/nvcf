@@ -8,8 +8,20 @@ of a service's scheduled backfill.
 ## Current umbrella review
 
 The current inventories select SIS 0.7.2, 0.7.7 and 0.8.5.
-The historical inspections below do not inspect the 0.7.7 image selected by umbrella 1.0.4.
-Verify task availability and semantics in that exact image before applying its task mode.
+The inspected linux/amd64 0.7.7 image contains the backfill task in a nested dependency JAR.
+Its packaged default mode is `DISABLED`.
+The 0.7.7 source task is unchanged from the historical 0.7.6 task.
+This comparison does not establish reproducible source-to-image identity or a completed data scan.
+
+| SIS image | Platform digest | Application JAR SHA-256 |
+| --- | --- | --- |
+| 0.7.7 | 895e0efeae0749fd31800125674e97937579bfb909cb509558956c35b5e23075 | 39240c9a21c201466a54738dfc88eba6540b0d1cc4852579f4b77aae2b595615 |
+
+The nested `InstanceLookupBackfillTask.class` SHA-256 is
+`c5fcfb1f7121b2d5f78f25f2f7d3cd651fdeccee359d88c74e43b1d6dc3e948d`.
+Inspect nested dependency JARs when checking task availability.
+An absent top-level class is insufficient evidence that the image lacks the task.
+
 A missing required task blocks execution until a reviewed repair or bridge exists.
 Preserve independent non-null lookup checks and partial-repair recovery rules.
 
@@ -37,7 +49,7 @@ does not establish reproducible source-to-image byte identity.
 
 ## Instance lookup completion gate
 
-The [source task](https://github.com/dsx-ai-factory/nvcf/blob/1a7b76ebf8ac048fbb38e6e95da96edf9c7a239a/src/control-plane-services/instance-cluster-management/icms-core/src/main/java/com/nvidia/icms/service/scheduled/InstanceLookupBackfillTask.java)
+The selected 0.7.7 [source task](https://github.com/dsx-ai-factory/nvcf/blob/c008b092af0757d83b61cf182805fc9b9235df06/src/control-plane-services/instance-cluster-management/icms-core/src/main/java/com/nvidia/icms/service/scheduled/InstanceLookupBackfillTask.java)
 compares each `sis_api.instances` row's `deployment_id` and
 `gpu_specification_id` with the corresponding instance request. `MIGRATE`
 fills null fields from that request. It does not repair conflicting non-null
@@ -57,7 +69,7 @@ fields. A missing request is accepted only for a terminated instance.
    to the paused data epoch and timestamp, and retain its digest. If no earlier
    record exists, create this record now while writers remain paused. Keep it
    available after a failed scan; it is separate from the later recovery backup.
-4. On SIS 0.7.6, set `ICMS_INSTANCE_LOOKUP_BACKFILL_TASK_MODE` through the
+4. On the inspected SIS 0.7.7, set `ICMS_INSTANCE_LOOKUP_BACKFILL_TASK_MODE` through the
    native `sis.env` values. Use `MIGRATE` only when null fields need repair.
    Follow the partial-run recovery rules below if that scan fails.
    Then use `VALIDATE` and wait for a completed scan from the expected pod.
@@ -78,7 +90,7 @@ fields. A missing request is accepted only for a terminated instance.
 
 ## Partial MIGRATE recovery
 
-The selected SIS 0.7.6 task commits each repaired row independently. A failed
+The selected SIS 0.7.7 task commits each repaired row independently. A failed
 scan can leave completed repairs. There is no transaction-wide rollback.
 Preserve row and workload identities and existing non-null values. The repair
 intentionally replaces null lookup fields with authoritative request values.
@@ -88,7 +100,7 @@ Wait for the previous execution to stop. Keep other affected writers paused.
 Save available summaries and compare the current instance/request cohort.
 Permit another `MIGRATE` run only when all these conditions hold:
 
-- The same released SIS 0.7.6 task remains selected.
+- The same released SIS 0.7.7 task remains selected.
 - Authoritative requests remain unchanged from the values saved in the
   pre-repair cohort record.
 - Each remaining null field has a non-null authoritative request value.
@@ -109,7 +121,7 @@ values. A restore or changed data epoch invalidates earlier completion evidence.
 
 ## Route boundaries
 
-For umbrella 1.0.4 to 1.1.0, verify the source SIS 0.7.7 image and installation history.
+For umbrella 1.0.4 to 1.1.0, bind the source SIS 0.7.7 inspection to its runtime digest and installation history.
 Complete applicable source data checks before backup and replacement with SIS 0.8.5.
 Do not assume that the previous SIS 0.7.6 image inspection covers 0.7.7.
 

@@ -64,6 +64,11 @@ An applicable backward selection blocks its action until compatibility and retai
 Unknown applicability also blocks that action.
 Do not silently change a released manifest to remove a finding.
 
+The [current artifact findings](current-findings.md) record an isolated OpenBao failure with the selected second-route server image.
+Source JWT mounts select a versioned plugin that the target image does not contain.
+The OpenBao action remains blocked. The selected SIS 0.7.7 image has also been inspected.
+These observations do not establish a successful upgrade or full-stack restore.
+
 ## Historical stack-only evidence
 
 The previous candidates compared control stacks 1.0.1 to 1.0.4 and 1.0.4 to 1.1.5.
