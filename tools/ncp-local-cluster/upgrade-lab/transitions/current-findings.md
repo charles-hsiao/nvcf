@@ -70,6 +70,28 @@ They do not qualify physical GPUs or host loss.
 The invocation service and gRPC proxy each used one replica.
 Legacy task diagnostics used explicitly authorized mirror references and retain the access limits below.
 
+## First-route source restore
+
+The legacy source passed a consistent cold restore on the same host.
+The backup paused callers, control-plane writers and both compute clusters.
+It checked the required SIS lookup fields, drained NATS and flushed Cassandra before stopping the control plane.
+The restore used 43 new volumes and 13 new runtime containers.
+Archive comparisons and paused data checks passed before consumers resumed.
+The original containers and volumes remained stopped and available for recovery.
+
+Postchecks preserved the original API keys, compute registrations, Kubernetes trust and PVC identities.
+They verified native cluster records, JWT mounts, JWKS and new JWT issuance.
+All four original HTTP/gRPC calls passed, including the HTTP secret checks.
+The four original task records remained COMPLETED.
+
+Four new functions served HTTP/gRPC calls across both compute clusters.
+Four new tasks completed across both clusters with and without secrets.
+The HTTP calls checked secret hashes.
+The harness restored the original deployment minimums and repeated all four original calls successfully.
+An earlier capacity refusal and worker-connection timeout remain in the diagnostic records.
+The retries retained the same workload records and waited for native admission capacity and worker readiness.
+These results cover the source cohort and do not establish target compatibility, host-loss recovery or route qualification.
+
 ## Legacy helper identity and access
 
 The two worker image platform digests match original producer records.
@@ -86,6 +108,8 @@ SHA-256 checks verified its raw OCI index and linux/amd64 child manifest.
 Canonical source pulls still fail for all three helpers.
 The [published known issue](https://github.com/dsx-ai-factory/nvcf/pull/3346)
 records the legacy catalog gap.
+The [source-task prerequisite follow-up](https://github.com/dsx-ai-factory/nvcf/issues/3667)
+tracks the public access decision and its required qualification.
 Keep customer pullability separate from the matching-byte evidence.
 The source references, released artifacts and supported-execution settings remain unchanged.
 
@@ -133,12 +157,24 @@ Runtime migration Job completion, clean ledgers, retained data and RF/DC checks 
 ## Other boundaries
 
 The [SIS inspection](service-migrations.md) now covers actual image 0.7.7.
-It does not prove completion of a scheduled backfill or the final paused data check.
+A native source `VALIDATE` diagnostic scanned eight rows and reported eight current rows.
+Its migrated, skippedTerminated, missingRequest, mismatched and failed counters were zero.
+The test used the selected SIS chart's environment ConfigMap and restored the original Deployment template afterward.
+All four original HTTP/gRPC calls passed again, and the four original task records remained COMPLETED.
+Writers remained active during this diagnostic.
+A later scan ran with other writers and both compute clusters paused.
+It reported 16 current rows and zero error counters.
+Independent required-lookup checks found no null or conflicting IDs.
+SIS stopped after that scan, before the matching cold backup.
+The scan does not establish a completed restore or qualify a later data epoch.
 
 The actual source NATS binaries report 2.14.6 for legacy 1.0.1 and 2.14.9 for umbrella 1.0.4.
 The second route's server regression is therefore not covered by the historical equal-binary finding.
 NATS reload, storage and recovery compatibility and cert-manager fix retention remain separate gates.
 
-Source workloads and component restores do not establish a consistent full-stack recovery point.
+The first-route source restore does not establish recovery for the second route or either target.
 Mixed-fleet acceptance, the actual hops, interruption and migration-failure recovery need matching evidence.
 Legacy task diagnostics retain the unresolved canonical helper access limit.
+
+Later source-only rehearsal updates are tracked in [the defining issue](https://github.com/dsx-ai-factory/nvcf/issues/3558).
+They do not enable either upgrade route.

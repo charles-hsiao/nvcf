@@ -78,6 +78,32 @@ sessions and tasks blocked. Do not convert storage, reset consumers manually,
 or replay messages to obtain an empty checkpoint. An operator abandoning the
 hop must verify source health before resuming its writers and callers.
 
+## Cold restore startup checks
+
+The restored API can initially return saved readiness status before kubelets reconnect.
+Record the restore boot time and check the running services before reading the protected cohort.
+
+1. Require every retained node to become Ready.
+   Require each kubelet lease renewal to occur after the restore boot time.
+2. Require actual stateful Pod readiness and the expected member placement.
+   For an OnDelete StatefulSet, use Pod readiness or the StatefulSet's ready replica count.
+   `kubectl rollout status` does not support that strategy.
+3. Require three Cassandra UN members and a successful authenticated CQL read.
+   Gossip membership can recover before the CQL port accepts connections.
+   Retain failed transport observations and use a bounded startup deadline.
+   Authentication failures or cohort mismatches stop the test.
+4. Compare the paused data, RF/DC mappings and native NATS configurations before resuming application writers.
+5. Require the injector to become Ready.
+   Check that a server-side Pod dry run produces the expected injected init container before starting consumers.
+6. Check fresh compute kubelet leases and actual original HTTP/gRPC calls after compute recovery.
+   After restoring deployment minimums, require actual worker readiness before invoking the original functions.
+   An ACTIVE API status alone does not establish a worker connection.
+   Retain startup transport failures and use a bounded retry deadline.
+
+Container-based labs must preserve actual network attachments, aliases, addresses and storage ownership.
+Docker's saved network mode alone does not identify every active attachment.
+Keep the original cohort and every failed attempt available during recovery.
+
 ## Component restore boundaries
 
 An isolated OpenBao Raft restore can test original unseal material, cluster

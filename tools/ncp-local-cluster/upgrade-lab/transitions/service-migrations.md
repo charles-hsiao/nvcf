@@ -69,8 +69,12 @@ fields. A missing request is accepted only for a terminated instance.
    to the paused data epoch and timestamp, and retain its digest. If no earlier
    record exists, create this record now while writers remain paused. Keep it
    available after a failed scan; it is separate from the later recovery backup.
-4. On the inspected SIS 0.7.7, set `ICMS_INSTANCE_LOOKUP_BACKFILL_TASK_MODE` through the
-   native `sis.env` values. Use `MIGRATE` only when null fields need repair.
+4. On the inspected SIS 0.7.7, use the selected chart's `sis.env` map for `ICMS_INSTANCE_LOOKUP_BACKFILL_TASK_MODE`.
+   Retain the other installed chart values.
+   The selected stack does not forward arbitrary `sis.env` state values.
+   Supply the override at chart level.
+   Check the rendered ConfigMap and the Deployment's `envFrom` reference before applying it.
+   Use `MIGRATE` only when null fields need repair.
    Follow the partial-run recovery rules below if that scan fails.
    Then use `VALIDATE` and wait for a completed scan from the expected pod.
 5. Independently compare the required lookup IDs in instances and requests.

@@ -29,7 +29,10 @@ repository. Artifact access, selected bytes and their provenance remain
 separate requirements. An operator-selected repository allows scoped
 diagnostics when explicitly authorized, but does not prove equivalence to an
 inaccessible original artifact. Keep the published route unqualified until
-that provenance gap is resolved. Do not replace original inventory assets,
+its identity, access and runtime requirements pass. The
+[current findings](current-findings.md#legacy-helper-identity-and-access)
+record later original-record digest matches and the remaining canonical access limit.
+Do not replace original inventory assets,
 rewrite released charts or infer helper versions from a newer service image.
 
 Inline receipt charts also need inspection. The source receipt helper selects
