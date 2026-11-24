@@ -27,6 +27,7 @@ type rehearsalConfig struct {
 	SourceRepository     string                                 `json:"source_repository"`
 	Inputs               string                                 `json:"inputs"`
 	Helmfile             string                                 `json:"helmfile"`
+	BundleVerifier       string                                 `json:"bundle_verifier"`
 	Overlays             map[string]map[string]rehearsalOverlay `json:"overlays"`
 	ComputeRegistrations []rehearsalRegistration                `json:"compute_registrations"`
 }
@@ -41,6 +42,7 @@ type rehearsalSource struct {
 	Endpoint      string   `json:"endpoint"`
 	Plane         string   `json:"plane"`
 	Ref           stackRef `json:"ref"`
+	SourceKind    string   `json:"source_kind"`
 	ArchiveSHA256 string   `json:"archive_sha256"`
 	ValuesSHA256  string   `json:"values_sha256"`
 	SecretsSHA256 string   `json:"secrets_sha256"`
@@ -54,23 +56,25 @@ type rehearsalStep struct {
 }
 
 type rehearsalRecord struct {
-	SchemaVersion  int               `json:"schema_version"`
-	Route          string            `json:"route"`
-	Phase          string            `json:"phase"`
-	Status         string            `json:"status"`
-	Qualification  string            `json:"qualification"`
-	ContractSHA256 string            `json:"contract_sha256"`
-	LockSHA256     string            `json:"lock_sha256"`
-	ConfigSHA256   string            `json:"config_sha256"`
-	BinarySHA256   string            `json:"binary_sha256"`
-	HelmfileSHA256 string            `json:"helmfile_sha256"`
-	StartedAt      time.Time         `json:"started_at"`
-	FinishedAt     *time.Time        `json:"finished_at,omitempty"`
-	Sources        []rehearsalSource `json:"sources"`
-	Steps          []rehearsalStep   `json:"steps"`
-	Renders        map[string]string `json:"render_sha256"`
-	Registrations  map[string]string `json:"registration_sha256"`
-	NextSafeAction string            `json:"next_safe_action"`
+	SchemaVersion        int                   `json:"schema_version"`
+	Route                string                `json:"route"`
+	Phase                string                `json:"phase"`
+	Status               string                `json:"status"`
+	Qualification        string                `json:"qualification"`
+	ContractSHA256       string                `json:"contract_sha256"`
+	LockSHA256           string                `json:"lock_sha256"`
+	ConfigSHA256         string                `json:"config_sha256"`
+	BinarySHA256         string                `json:"binary_sha256"`
+	HelmfileSHA256       string                `json:"helmfile_sha256"`
+	BundleVerifierSHA256 string                `json:"bundle_verifier_sha256"`
+	ReleaseInputs        map[string]releaseRef `json:"release_inputs"`
+	StartedAt            time.Time             `json:"started_at"`
+	FinishedAt           *time.Time            `json:"finished_at,omitempty"`
+	Sources              []rehearsalSource     `json:"sources"`
+	Steps                []rehearsalStep       `json:"steps"`
+	Renders              map[string]string     `json:"render_sha256"`
+	Registrations        map[string]string     `json:"registration_sha256"`
+	NextSafeAction       string                `json:"next_safe_action"`
 }
 
 var stackDirectories = map[string]string{
@@ -123,9 +127,9 @@ func readRehearsalConfig(path string) (rehearsalConfig, []byte, error) {
 	if decoder.Decode(new(any)) != io.EOF {
 		return config, nil, errors.New("private rehearsal configuration must contain one JSON object")
 	}
-	for _, p := range []string{config.SourceRepository, config.Inputs, config.Helmfile} {
+	for _, p := range []string{config.SourceRepository, config.Inputs, config.Helmfile, config.BundleVerifier} {
 		if !filepath.IsAbs(p) {
-			return config, nil, errors.New("source_repository, inputs and helmfile must be absolute paths")
+			return config, nil, errors.New("source_repository, inputs, helmfile and bundle_verifier must be absolute paths")
 		}
 	}
 	if len(config.Overlays) != 2 {
@@ -211,11 +215,12 @@ func prepareRehearsal(ctx context.Context, lock artifactLock, route routeContrac
 		return fmt.Errorf("rehearsal directory must be new: %w", err)
 	}
 	record := rehearsalRecord{
-		SchemaVersion: 1, Route: route.ID, Phase: "prepare", Status: "running", Qualification: "unqualified",
+		SchemaVersion: 2, Route: route.ID, Phase: "prepare", Status: "running", Qualification: "unqualified",
 		ContractSHA256: route.SHA256, LockSHA256: lock.SHA256, ConfigSHA256: checksum(raw), StartedAt: time.Now().UTC(),
 		NextSafeAction: "Wait for preparation to complete; do not apply releases.",
 		Renders:        map[string]string{},
 		Registrations:  map[string]string{},
+		ReleaseInputs:  map[string]releaseRef{},
 	}
 	save := func() error {
 		temporary := filepath.Join(out, "record.tmp")
@@ -247,6 +252,9 @@ func prepareRehearsal(ctx context.Context, lock artifactLock, route routeContrac
 		return err
 	}
 	if record.HelmfileSHA256, err = fileChecksum(config.Helmfile); err != nil {
+		return err
+	}
+	if record.BundleVerifierSHA256, err = fileChecksum(config.BundleVerifier); err != nil {
 		return err
 	}
 	command := func(operation, name string, args ...string) ([]byte, error) {
@@ -288,6 +296,24 @@ func prepareRehearsal(ctx context.Context, lock artifactLock, route routeContrac
 		if err := os.Mkdir(root, 0700); err != nil {
 			return err
 		}
+		if selected.Release != nil {
+			ref := selected.Release
+			dir := releaseInputDir(config.Inputs, selected)
+			resolved, err := command("verify "+endpoint+" product tag", "git", "-C", config.SourceRepository, "rev-parse", "--verify", "refs/tags/"+ref.Tag+"^{commit}")
+			if err != nil {
+				return err
+			}
+			if strings.TrimSpace(string(resolved)) != ref.Commit {
+				return fmt.Errorf("%s product source tag differs from locked commit", endpoint)
+			}
+			if _, err := command("verify "+endpoint+" umbrella bundle", config.BundleVerifier, "umbrella", "verify-bundle", "--manifest", filepath.Join(dir, ref.Manifest.Name), "--bundle", filepath.Join(dir, ref.Bundle.Name), "--sha256", ref.Bundle.SHA256); err != nil {
+				return err
+			}
+			if _, err := command("extract "+endpoint+" umbrella bundle", "tar", "-xzf", filepath.Join(dir, ref.Bundle.Name), "-C", root); err != nil {
+				return err
+			}
+			record.ReleaseInputs[endpoint] = *ref
+		}
 		for _, plane := range planes {
 			ref := selected.Stacks[plane]
 			resolved, err := command("verify "+endpoint+" "+plane+" tag", "git", "-C", config.SourceRepository, "rev-parse", "--verify", "refs/tags/"+ref.Tag+"^{commit}")
@@ -298,16 +324,20 @@ func prepareRehearsal(ctx context.Context, lock artifactLock, route routeContrac
 				return fmt.Errorf("%s %s source tag differs from locked commit", endpoint, plane)
 			}
 			path := "deploy/stacks/" + stackDirectories[plane]
-			archive := filepath.Join(out, "private", endpoint+"-"+plane+".tar")
-			if _, err := command("archive "+endpoint+" "+plane, "git", "-C", config.SourceRepository, "archive", "--format=tar", "--output="+archive, ref.Commit, path); err != nil {
-				return err
-			}
-			if _, err := command("extract "+endpoint+" "+plane, "tar", "-xf", archive, "-C", root); err != nil {
-				return err
-			}
-			source := rehearsalSource{Endpoint: endpoint, Plane: plane, Ref: ref}
-			if source.ArchiveSHA256, err = fileChecksum(archive); err != nil {
-				return err
+			source := rehearsalSource{Endpoint: endpoint, Plane: plane, Ref: ref, SourceKind: selected.Kind}
+			if selected.Release != nil {
+				source.ArchiveSHA256 = selected.Release.Bundle.SHA256
+			} else {
+				archive := filepath.Join(out, "private", endpoint+"-"+plane+".tar")
+				if _, err := command("archive "+endpoint+" "+plane, "git", "-C", config.SourceRepository, "archive", "--format=tar", "--output="+archive, ref.Commit, path); err != nil {
+					return err
+				}
+				if _, err := command("extract "+endpoint+" "+plane, "tar", "-xf", archive, "-C", root); err != nil {
+					return err
+				}
+				if source.ArchiveSHA256, err = fileChecksum(archive); err != nil {
+					return err
+				}
 			}
 			stack := filepath.Join(root, path)
 			overlay := config.Overlays[endpoint][plane]

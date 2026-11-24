@@ -27,12 +27,14 @@ Final endpoint compatibility does not qualify intermediate or mixed-fleet states
 [artifact-lock.json](artifact-lock.json) binds each manifest to a repository commit and SHA-256.
 The [1.0.4](manifests/1.0.4.json) and [1.1.0](manifests/1.1.0.json) copies retain their released bytes.
 Each manifest selects three stack tags, source commits and inventory digests.
-The lock adds original inventory asset IDs.
+The lock adds original release asset IDs and hashes for the manifest, asset
+index and bundle. It also records original inventory asset IDs.
 The loader verifies all three selections against the manifest and frozen documentation matrix.
 The legacy baseline uses only its frozen matrix and original inventories.
 
-Fetch verifies the remote manifest at its locked commit before downloading inventories.
-Audit verifies local manifest bytes and inventory identities before comparison.
+Fetch verifies the remote manifest at its locked commit before downloading release assets and inventories.
+Each asset index must bind the same manifest, bundle and three inventories.
+Audit verifies local manifest bytes, original release assets and inventory identities before comparison.
 Neither operation changes released assets or establishes runtime compatibility.
 Old stack-only route IDs fail validation. Their checkpoints cannot resume these routes.
 The new contract and lock digests also invalidate evidence from the previous scope.

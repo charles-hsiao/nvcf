@@ -42,15 +42,17 @@ func rehearsalFixture(t *testing.T) (artifactLock, routeContract, string, string
 			}
 			lock.Selections[n].Stacks[plane] = ref
 		}
+		writeReleaseFixtureInputs(t, &lock.Selections[n], inputs)
 	}
 	tool := filepath.Join(root, "helmfile")
+	verifier := filepath.Join(root, "bundle-verifier")
 	values, secrets := filepath.Join(root, "values.json"), filepath.Join(root, "secrets.json")
-	for _, p := range []string{tool, values, secrets} {
+	for _, p := range []string{tool, verifier, values, secrets} {
 		if err := os.WriteFile(p, []byte("{}"), 0600); err != nil {
 			t.Fatal(err)
 		}
 	}
-	config := rehearsalConfig{SourceRepository: root, Inputs: inputs, Helmfile: tool, ComputeRegistrations: []rehearsalRegistration{{ClusterName: "compute-a", NCAID: "fixture", Values: values}, {ClusterName: "compute-b", NCAID: "fixture", Values: values}}, Overlays: map[string]map[string]rehearsalOverlay{}}
+	config := rehearsalConfig{SourceRepository: root, Inputs: inputs, Helmfile: tool, BundleVerifier: verifier, ComputeRegistrations: []rehearsalRegistration{{ClusterName: "compute-a", NCAID: "fixture", Values: values}, {ClusterName: "compute-b", NCAID: "fixture", Values: values}}, Overlays: map[string]map[string]rehearsalOverlay{}}
 	for _, endpoint := range []string{"source", "target"} {
 		config.Overlays[endpoint] = map[string]rehearsalOverlay{}
 		for _, plane := range planes {
@@ -68,10 +70,19 @@ func rehearsalExecutor(t *testing.T, lock artifactLock, calls *[]string, failRen
 	t.Helper()
 	return func(_ context.Context, name string, args ...string) ([]byte, error) {
 		*calls = append(*calls, name+" "+strings.Join(args, " "))
+		if filepath.Base(name) == "bundle-verifier" {
+			if len(args) != 8 || args[0] != "umbrella" || args[1] != "verify-bundle" {
+				t.Fatalf("incorrect native verifier command: %v", args)
+			}
+			return nil, nil
+		}
 		switch name {
 		case "git":
 			if args[2] == "rev-parse" {
 				for _, selected := range lock.Selections {
+					if selected.Release != nil && args[4] == "refs/tags/"+selected.Release.Tag+"^{commit}" {
+						return []byte(selected.Release.Commit + "\n"), nil
+					}
 					for _, ref := range selected.Stacks {
 						if args[4] == "refs/tags/"+ref.Tag+"^{commit}" {
 							return []byte(ref.Commit + "\n"), nil
@@ -119,7 +130,7 @@ func TestPrepareRehearsalUsesIndependentImmutableSources(t *testing.T) {
 	if err := readJSON(filepath.Join(out, "record.json"), &record); err != nil {
 		t.Fatal(err)
 	}
-	if record.Status != "prepared" || record.Qualification != "unqualified" || len(record.Renders) != 12 || len(record.Sources) != 6 || record.FinishedAt == nil {
+	if record.SchemaVersion != 2 || record.Status != "prepared" || record.Qualification != "unqualified" || len(record.Renders) != 12 || len(record.Sources) != 6 || len(record.ReleaseInputs) != 2 || record.BundleVerifierSHA256 == "" || record.FinishedAt == nil {
 		t.Fatalf("incomplete rehearsal record: %+v", record)
 	}
 	for _, source := range record.Sources {

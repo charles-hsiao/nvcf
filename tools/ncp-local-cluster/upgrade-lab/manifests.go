@@ -23,6 +23,7 @@ type manifestStack struct {
 }
 type umbrellaManifest struct {
 	SchemaVersion int                      `json:"schema_version"`
+	SourceCommit  string                   `json:"source_commit"`
 	Version       string                   `json:"version"`
 	Stacks        map[string]manifestStack `json:"stacks"`
 }

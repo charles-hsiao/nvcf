@@ -4,8 +4,8 @@
   "version_scope": "umbrella-release",
   "qualification": "unqualified",
   "supported_execution_enabled": false,
-  "artifact_lock_sha256": "sha256:6efc4c27e90b7f006dbcfa59914c0568f499a4a2084a7bc4d2ce6199878ab50d",
-  "scope": "Manifest and original inventory identity checks plus regenerated component reports. No live upgrade qualification for these umbrella selections.",
+  "artifact_lock_sha256": "sha256:193c79bb0035fe9657e385a1a6b160ba51fc598a81f58eff16b450e481cd7f03",
+  "scope": "Pinned manifest, original release asset and inventory identity checks plus regenerated component reports. No live upgrade qualification for these umbrella selections.",
   "reports": [
     {
       "route": "umbrella-1.0.1-to-1.0.4",
@@ -19,7 +19,7 @@
         "unordered": 0
       },
       "contract_sha256": "sha256:6f928142cc4ed67928b66da06f7f843454a7eb6492377c415e807807138843b7",
-      "component_report_sha256": "sha256:9b1ff1faeae73949f63bd6663539fd577c45230eb7098516b8888aec222accf5",
+      "component_report_sha256": "sha256:dc350bd14eb570b9fee616779a6a2fc127b3a399eae4b8f2b1980e81bb096443",
       "selections": [
         {
           "version": "1.0.1",
@@ -86,6 +86,25 @@
             "path": "manifests/1.0.4.json",
             "source_commit": "d46842d66fac896b7f7b9e8190a8f767f4db48cf",
             "sha256": "sha256:20656169ea9d017d9168df668ae3632e5dde3699c3e1737d4142ec73bcaf1421"
+          },
+          "release": {
+            "source_tag": "nvcf/1.0.4",
+            "source_commit": "d46842d66fac896b7f7b9e8190a8f767f4db48cf",
+            "manifest": {
+              "name": "manifest.json",
+              "sha256": "sha256:20656169ea9d017d9168df668ae3632e5dde3699c3e1737d4142ec73bcaf1421",
+              "asset_id": 719112845
+            },
+            "asset_index": {
+              "name": "release-assets.json",
+              "sha256": "sha256:ec157404fd0a8550532a9f5afb4ca05619902a5a1aa61c0d1cfbad6126c75c5d",
+              "asset_id": 719113023
+            },
+            "bundle": {
+              "name": "nvcf-1.0.4.tar.gz",
+              "sha256": "sha256:980a1c53818efce5afc01b7354819578c9449ee2350a1c9762a05878840239f1",
+              "asset_id": 719112881
+            }
           }
         }
       ]
@@ -102,7 +121,7 @@
         "unordered": 0
       },
       "contract_sha256": "sha256:263d784e519535e1826fcf97cceb38754e0a86b6f066b9c2b53ec9566e394698",
-      "component_report_sha256": "sha256:c9bb079134f499f3b1b4959f1616ef9f431eb1b5cd87ef8b060e78f67bbac3db",
+      "component_report_sha256": "sha256:6944dda9c25209c5e42867130923b088476e778e37ce29bd17e30d5c54eacfae",
       "selections": [
         {
           "version": "1.0.4",
@@ -138,6 +157,25 @@
             "path": "manifests/1.0.4.json",
             "source_commit": "d46842d66fac896b7f7b9e8190a8f767f4db48cf",
             "sha256": "sha256:20656169ea9d017d9168df668ae3632e5dde3699c3e1737d4142ec73bcaf1421"
+          },
+          "release": {
+            "source_tag": "nvcf/1.0.4",
+            "source_commit": "d46842d66fac896b7f7b9e8190a8f767f4db48cf",
+            "manifest": {
+              "name": "manifest.json",
+              "sha256": "sha256:20656169ea9d017d9168df668ae3632e5dde3699c3e1737d4142ec73bcaf1421",
+              "asset_id": 719112845
+            },
+            "asset_index": {
+              "name": "release-assets.json",
+              "sha256": "sha256:ec157404fd0a8550532a9f5afb4ca05619902a5a1aa61c0d1cfbad6126c75c5d",
+              "asset_id": 719113023
+            },
+            "bundle": {
+              "name": "nvcf-1.0.4.tar.gz",
+              "sha256": "sha256:980a1c53818efce5afc01b7354819578c9449ee2350a1c9762a05878840239f1",
+              "asset_id": 719112881
+            }
           }
         },
         {
@@ -174,6 +212,25 @@
             "path": "manifests/1.1.0.json",
             "source_commit": "2120f7aa9186391ad4f45bfaa0f5587364e1a3ff",
             "sha256": "sha256:531239f3efca39d936d694e22f0c6fea54ead7c417b9ba8afa0781a9cc64e626"
+          },
+          "release": {
+            "source_tag": "nvcf/1.1.0",
+            "source_commit": "2120f7aa9186391ad4f45bfaa0f5587364e1a3ff",
+            "manifest": {
+              "name": "manifest.json",
+              "sha256": "sha256:531239f3efca39d936d694e22f0c6fea54ead7c417b9ba8afa0781a9cc64e626",
+              "asset_id": 733711576
+            },
+            "asset_index": {
+              "name": "release-assets.json",
+              "sha256": "sha256:f6f3dded2cad12679d06d7a99017d9c6197acb360f37caa5bde992ce5a5f64f1",
+              "asset_id": 733711738
+            },
+            "bundle": {
+              "name": "nvcf-1.1.0.tar.gz",
+              "sha256": "sha256:3690bbeca8d48821d977d941205b210dd3169994e3987918f96bef9a99359bcd",
+              "asset_id": 733711607
+            }
           }
         }
       ]

@@ -10,9 +10,11 @@ Blank cells mean no entry in that consumer's inventory. They do not establish ru
 
 Endpoint 1.0.1 reference: [Docs 1.0.1 matrix](https://docs.nvidia.com/nvcf/1.0.1/release-notes/compatibility-matrix).
 
+Endpoint 1.0.4 original release: `nvcf/1.0.4` at `d46842d66fac896b7f7b9e8190a8f767f4db48cf`. Manifest `sha256:20656169ea9d017d9168df668ae3632e5dde3699c3e1737d4142ec73bcaf1421`; bundle `sha256:980a1c53818efce5afc01b7354819578c9449ee2350a1c9762a05878840239f1`.
+
 Endpoint 1.0.4 reference: [Docs 1.0.4 matrix](https://docs.nvidia.com/nvcf/1.0.4/release-notes/compatibility-matrix).
 
-Artifact lock: `sha256:6efc4c27e90b7f006dbcfa59914c0568f499a4a2084a7bc4d2ce6199878ab50d`
+Artifact lock: `sha256:193c79bb0035fe9657e385a1a6b160ba51fc598a81f58eff16b450e481cd7f03`
 
 Contract: `sha256:6f928142cc4ed67928b66da06f7f843454a7eb6492377c415e807807138843b7`
 

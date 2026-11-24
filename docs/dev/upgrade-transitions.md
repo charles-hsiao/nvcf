@@ -27,7 +27,8 @@ Final endpoint selections do not qualify intermediate or mixed-fleet states.
 ## Before the hop
 
 1. Run the lab's [fetch and audit commands](../../tools/ncp-local-cluster/upgrade-lab/README.md).
-   Verify manifest commit/digest and each selected stack tag, commit and original inventory digest.
+   Verify original manifest, asset index and bundle hashes.
+   Verify the product tag and each selected stack tag, commit and original inventory digest.
    Stop on changed identities, unavailable artifacts or unresolved compatibility.
 2. Obtain selected chart packages and images.
    Record package hashes, platform digests and effective helper references.
@@ -57,6 +58,20 @@ Final endpoint selections do not qualify intermediate or mixed-fleet states.
    The candidate [recovery profile](../../tools/ncp-local-cluster/upgrade-lab/transitions/recovery-prerequisites.md) requires drained memory streams.
    Preserve stream/consumer configurations and record native sequence/cursor resets.
    Nonempty or in-flight memory recovery remains unsupported. Helm rollback does not restore data.
+
+## Isolated diagnostic runs
+
+An operator can authorize an isolated lab run to investigate a known
+compatibility blocker. Record the authorization, exact artifacts, unresolved
+blockers and expected stop boundary before mutation. Require a verified source
+baseline and a demonstrated consistent restore before any upgrade action.
+Stop at the first failed or unknown runtime gate, restore the source cohort,
+and report later stages as unexecuted. Do not replace selected artifacts or
+waive identity, backup or restore checks to continue.
+
+A diagnostic run does not satisfy a blocked contract precondition. A reproduced
+failure and successful restore do not qualify the upgrade or remove the
+published 1.0.4 to 1.1.0 upgrade restriction.
 
 ## Candidate action order
 
@@ -134,12 +149,12 @@ Cross-host and stateless callback HA need separate qualification.
 
 ```mermaid
 flowchart TD
-  A[Pinned umbrella manifests or explicit legacy baseline] --> B[Verify stack inventories and resolve artifact regressions]
+  A[Pinned release assets or explicit legacy baseline] --> B[Verify identities and review artifact regressions]
   B --> C[Fresh HA source workload baseline]
   C --> P[Pause callers, drain and pause affected writers]
   P --> H[Source data completion gate]
   H --> I[Consistent backup and isolated restore]
-  I --> D[Apply reviewed candidate sequence]
+  I --> D[Apply reviewed sequence or authorized diagnostic action]
   D --> E[Data, JWT, mixed-fleet and final acceptance]
   D --> F[Stop on failed or unknown condition]
   F --> G[Revalidate state or restore consistent backup]

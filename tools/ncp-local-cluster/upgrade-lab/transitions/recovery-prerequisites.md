@@ -16,12 +16,12 @@ for its native timeout blocks the affected drain.
 
 ## NATS memory storage
 
-Both selected source servers run NATS 2.14.6. CLI 0.4.0 rejects memory-stream
-backup. A separate native snapshot API request also returns error 10064,
-`snapshot failed: no impl`. The matching upstream
-[memory-store implementation](https://github.com/nats-io/nats-server/blob/v2.14.6/server/memstore.go)
+The first source runs NATS 2.14.6. Umbrella 1.0.4, the second source,
+runs NATS 2.14.9. Check each exact image and native snapshot API again.
+The upstream [2.14.6 memory store](https://github.com/nats-io/nats-server/blob/v2.14.6/server/memstore.go)
 does not implement snapshots. A filesystem archive does not capture messages
-held in process memory.
+held in process memory. An earlier test of another image is not current
+recovery evidence.
 
 The candidate recovery mode is `drained-memory-cold-restore`. It covers a
 fully drained cohort. Recovery of nonempty or in-flight state is unsupported.
@@ -36,12 +36,11 @@ solution or waive data preservation.
 | `CreateNvcaFunctionTaskStream` | Compute creation commands | Empty stream and no pending consumer work |
 | `TerminateNvcaStream` | Compute termination commands | Empty stream and no pending consumer work |
 
-The source contains three-replica streams and single-replica management
-streams. Preserve each actual configuration. Cold-copy testing with the
-selected server image showed that a drained stream and its durable consumer
-retain their configurations and can deliver and acknowledge new messages.
-Their memory stream sequences and delivery/ack counters reset to zero. Do not
-report those historical counters as preserved.
+Inventory actual source stream and consumer replication. Preserve each
+configuration, including single-replica management streams when present.
+Test drained cold restore with the selected source image. Record whether
+historical stream sequences and delivery/ack counters reset. Do not report
+those counters as preserved without direct evidence.
 
 Before a planned NATS member replacement, also wait for both single-replica
 management streams to have no messages, bytes or pending consumer work. Keep

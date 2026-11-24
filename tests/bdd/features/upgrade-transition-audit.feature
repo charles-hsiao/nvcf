@@ -109,6 +109,20 @@ Feature: Audit the immutable inputs for one upgrade hop
     Then the command exit code should be 1
     And the command output should contain "inventory digest mismatch"
 
+  Scenario: Reject a changed original umbrella bundle before comparison
+    Given I copy the file "${TRANSITION_INPUTS}/releases/1.0.4/manifest.json" to "${TRANSITION_OUTPUT}/changed-release/releases/1.0.4/manifest.json"
+    And I copy the file "${TRANSITION_INPUTS}/releases/1.0.4/release-assets.json" to "${TRANSITION_OUTPUT}/changed-release/releases/1.0.4/release-assets.json"
+    When I successfully run command:
+      """
+      /bin/sh -c 'printf "changed bundle\n" > "$1"' _ "${TRANSITION_OUTPUT}/changed-release/releases/1.0.4/nvcf-1.0.4.tar.gz"
+      """
+    And I run command:
+      """
+      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.4-to-1.1.0 --inputs "${TRANSITION_OUTPUT}/changed-release" --out "${TRANSITION_OUTPUT}/changed-bundle-rejected"
+      """
+    Then the command exit code should be 1
+    And the command output should contain "release asset digest mismatch: nvcf-1.0.4.tar.gz"
+
   Scenario: Reject an undeclared direct hop
     When I run command:
       """

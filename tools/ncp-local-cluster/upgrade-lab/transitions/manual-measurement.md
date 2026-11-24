@@ -7,7 +7,7 @@ not qualify either route or supply an automated upgrade runner.
 ## Freeze the comparison
 
 Before either run, record the route, contract and artifact-lock hashes, exact
-stack source commits, selected chart and platform-image digests, tool versions,
+product manifest and archive digests, stack commits, chart/image digests, tool versions,
 site-value hashes and enabled features. Record the existing topology, storage,
 registrations and workload fixture identities. Use separate private run
 directories and equivalent restored source cohorts for the manual and automated

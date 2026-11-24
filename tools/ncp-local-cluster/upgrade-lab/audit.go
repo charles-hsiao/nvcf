@@ -212,6 +212,9 @@ func renderComparison(r auditReport) string {
 	out.WriteString("Comparison includes optional releases. Inventory differences do not establish profile applicability or runtime failure.\n\n")
 	out.WriteString("Blank cells mean no entry in that consumer's inventory. They do not establish runtime absence. Added and removed counts describe inventory entries.\n\n")
 	for _, s := range r.Selections {
+		if s.Release != nil {
+			fmt.Fprintf(&out, "Endpoint %s original release: `%s` at `%s`. Manifest `%s`; bundle `%s`.\n\n", s.Version, s.Release.Tag, s.Release.Commit, s.Release.Manifest.SHA256, s.Release.Bundle.SHA256)
+		}
 		fmt.Fprintf(&out, "Endpoint %s reference: [Docs %s matrix](https://docs.nvidia.com/nvcf/%s/release-notes/compatibility-matrix).\n\n", s.Version, s.PeerMatrixEdition, s.PeerMatrixEdition)
 	}
 	fmt.Fprintf(&out, "Artifact lock: `%s`\n\nContract: `%s`\n\n", r.ArtifactLockSHA256, r.ContractSHA256)

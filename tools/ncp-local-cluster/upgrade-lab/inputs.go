@@ -38,6 +38,7 @@ type selection struct {
 	Stacks            map[string]stackRef `json:"stacks"`
 	PeerMatrixEdition string              `json:"peer_matrix_edition"`
 	Manifest          *manifestRef        `json:"manifest,omitempty"`
+	Release           *releaseRef         `json:"release,omitempty"`
 }
 type stackRef struct {
 	Version string `json:"version"`
@@ -161,6 +162,9 @@ func loadLock(path string) (artifactLock, error) {
 		}
 	}
 	for _, s := range lock.Selections {
+		if err := validateRelease(s); err != nil {
+			return lock, fmt.Errorf("endpoint %s: %w", s.Version, err)
+		}
 		if err := validateSelection(filepath.Dir(path), s); err != nil {
 			return lock, fmt.Errorf("endpoint %s: %w", s.Version, err)
 		}
@@ -256,6 +260,9 @@ func loadInputs(lock artifactLock, r routeContract, dir string) (map[string]map[
 		if err != nil {
 			return nil, err
 		}
+		if err := verifyReleaseInputs(s, dir); err != nil {
+			return nil, fmt.Errorf("endpoint %s: %w", version, err)
+		}
 		loaded[version] = map[string]inventory{}
 		for _, p := range planes {
 			ref := s.Stacks[p]
@@ -309,6 +316,31 @@ func fetchInputsWithExecutor(ctx context.Context, lock artifactLock, r routeCont
 		}
 		if checksum(raw) != ref.SHA256 {
 			return fmt.Errorf("remote umbrella manifest digest mismatch for %s", selected.Version)
+		}
+	}
+	for _, version := range []string{r.From, r.To} {
+		s, _ := lock.selection(version)
+		if s.Release == nil {
+			continue
+		}
+		dir := releaseInputDir(out, s)
+		if err := os.MkdirAll(dir, 0700); err != nil {
+			return err
+		}
+		for _, asset := range []releaseAsset{s.Release.Manifest, s.Release.AssetIndex, s.Release.Bundle} {
+			raw, err := fetch(fmt.Sprintf("repos/%s/releases/assets/%d", lock.Repository, asset.AssetID))
+			if err != nil {
+				return err
+			}
+			if checksum(raw) != asset.SHA256 {
+				return fmt.Errorf("release asset digest mismatch: %s", asset.Name)
+			}
+			if err := os.WriteFile(filepath.Join(dir, asset.Name), raw, 0600); err != nil {
+				return err
+			}
+		}
+		if err := verifyReleaseInputs(s, out); err != nil {
+			return err
 		}
 	}
 	seen := map[string]bool{}

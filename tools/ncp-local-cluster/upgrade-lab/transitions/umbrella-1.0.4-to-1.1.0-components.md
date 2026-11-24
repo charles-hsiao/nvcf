@@ -8,11 +8,15 @@ Comparison includes optional releases. Inventory differences do not establish pr
 
 Blank cells mean no entry in that consumer's inventory. They do not establish runtime absence. Added and removed counts describe inventory entries.
 
+Endpoint 1.0.4 original release: `nvcf/1.0.4` at `d46842d66fac896b7f7b9e8190a8f767f4db48cf`. Manifest `sha256:20656169ea9d017d9168df668ae3632e5dde3699c3e1737d4142ec73bcaf1421`; bundle `sha256:980a1c53818efce5afc01b7354819578c9449ee2350a1c9762a05878840239f1`.
+
 Endpoint 1.0.4 reference: [Docs 1.0.4 matrix](https://docs.nvidia.com/nvcf/1.0.4/release-notes/compatibility-matrix).
+
+Endpoint 1.1.0 original release: `nvcf/1.1.0` at `2120f7aa9186391ad4f45bfaa0f5587364e1a3ff`. Manifest `sha256:531239f3efca39d936d694e22f0c6fea54ead7c417b9ba8afa0781a9cc64e626`; bundle `sha256:3690bbeca8d48821d977d941205b210dd3169994e3987918f96bef9a99359bcd`.
 
 Endpoint 1.1.0 reference: [Docs 1.1.0 matrix](https://docs.nvidia.com/nvcf/1.1.0/release-notes/compatibility-matrix).
 
-Artifact lock: `sha256:6efc4c27e90b7f006dbcfa59914c0568f499a4a2084a7bc4d2ce6199878ab50d`
+Artifact lock: `sha256:193c79bb0035fe9657e385a1a6b160ba51fc598a81f58eff16b450e481cd7f03`
 
 Contract: `sha256:263d784e519535e1826fcf97cceb38754e0a86b6f066b9c2b53ec9566e394698`
 

@@ -14,7 +14,8 @@ No new third-party dependencies are required.
 
 Run from the repository root. Every output directory must be new; keep its
 parent private. Fetch uses the existing authenticated `gh` CLI to download
-original stack release inventories. Route versions identify umbrella releases.
+original release manifests, asset indexes, bundles and stack inventories.
+Route versions identify umbrella releases.
 Version 1.0.1 is an explicit legacy baseline without an umbrella manifest.
 Umbrella 1.0.4 selects control 1.0.10, compute 1.0.5 and Observability 1.0.0.
 Umbrella 1.1.0 selects control 1.1.5, compute 1.1.0 and Observability 1.1.0.
@@ -22,6 +23,7 @@ The loader checks all three stacks against pinned manifests and documentation ma
 
 ```sh
 go -C tools/ncp-local-cluster/upgrade-lab build -o /tmp/nvcf-upgrade-lab .
+go -C tools/docs-version-sync build -o /tmp/nvcf-bundle-verifier .
 umask 077
 export UPGRADE_RECORD="$(mktemp -d)"
 
@@ -37,9 +39,10 @@ export UPGRADE_RECORD="$(mktemp -d)"
 ```
 
 Fetch verifies remote manifest bytes at their pinned commits.
-It then checks original inventory hashes and source tags/commits.
+It then verifies original release assets and inventories by SHA-256.
+The asset index must bind the same manifest, bundle and three inventories.
 Audit rejects changed manifests or selections that differ from those manifests.
-Old stack-only route IDs fail validation. Their checkpoints cannot resume these routes. Audit rechecks the inventories and writes `audit.json` and
+Old stack-only route IDs fail validation. Their checkpoints cannot resume these routes. Audit rechecks the release assets and inventories and writes `audit.json` and
 `components.md`, including provenance and declared execution blockers.
 Comparison retains each consumer's helper versions. Multiple versions within
 one consumer require render review; the tool does not guess a version pairing.
@@ -95,10 +98,12 @@ under `private/`. Do not publish them.
 
 ## Export and render a rehearsal
 
-`rehearse --phase prepare` exports each endpoint's three stack directories
-from their independently locked commits into one isolated source tree per
-endpoint. It verifies source tags and original inventory hashes before using
-them. Only new environment and secret files are added. Chart and stack source
+`rehearse --phase prepare` verifies each umbrella endpoint's original bundle
+with the native `docs-version-sync umbrella verify-bundle` command before
+extraction. It checks the pinned manifest, asset index, bundle and inventories,
+plus the product and stack tags. Each endpoint gets an isolated source tree.
+The legacy source uses three Git archives from its independently locked stack
+commits because it has no umbrella bundle. Only new environment and secret files are added. Chart and stack source
 files are not patched.
 
 Provide a private JSON configuration with these fields:
@@ -106,7 +111,8 @@ Provide a private JSON configuration with these fields:
 | Field | Value |
 | --- | --- |
 | `source_repository` | Absolute path to a Git repository containing the locked tags and commits |
-| `inputs` | Absolute path to original inventories from `fetch` |
+| `inputs` | Absolute path to the verified release assets and inventories from `fetch` |
+| `bundle_verifier` | Absolute path to the native `docs-version-sync` executable |
 | `helmfile` | Absolute path to the Helmfile executable |
 | `overlays.source` | Entries for `control-plane`, `compute-plane` and `observability` |
 | `overlays.target` | Entries for the same three planes |
@@ -142,7 +148,8 @@ This partial preparation cannot establish complete profile applicability.
 Each command has a bounded timeout. Source archives, rendered manifests and
 raw output remain private. An empty run-owned kubeconfig prevents use of the
 operator's default context. `record.json` records the lab binary, Helmfile,
-configuration, contract, inventory identities, source archives, overlays and
+configuration, contract, original release assets, bundle verifier, inventory
+identities, legacy source archives, overlays and
 render hashes. A failed operation leaves a `blocked` record and stops later
 commands. Existing run directories are never overwritten. Resolve the cause
 and use a new directory for another preparation attempt.
