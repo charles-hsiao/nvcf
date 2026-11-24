@@ -15,6 +15,20 @@ Feature: Audit the immutable inputs for one upgrade hop
   Scenario: Compare both umbrella routes without qualifying either
     When I successfully run command:
       """
+      cat "${TRANSITION_CONTRACTS}/manifests/1.0.4.json"
+      """
+    And I export command output JSON field "stacks.control-plane.version" to environment variable "UMBRELLA_104_CONTROL"
+    And I export command output JSON field "stacks.compute-plane.version" to environment variable "UMBRELLA_104_COMPUTE"
+    And I export command output JSON field "stacks.observability.version" to environment variable "UMBRELLA_104_OBSERVABILITY"
+    When I successfully run command:
+      """
+      cat "${TRANSITION_CONTRACTS}/manifests/1.1.0.json"
+      """
+    And I export command output JSON field "stacks.control-plane.version" to environment variable "UMBRELLA_110_CONTROL"
+    And I export command output JSON field "stacks.compute-plane.version" to environment variable "UMBRELLA_110_COMPUTE"
+    And I export command output JSON field "stacks.observability.version" to environment variable "UMBRELLA_110_OBSERVABILITY"
+    When I successfully run command:
+      """
       "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.1-to-1.0.4 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/101-104"
       """
     Then yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "summary.qualification" should equal "unqualified"
@@ -24,22 +38,24 @@ Feature: Audit the immutable inputs for one upgrade hop
     And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[0].kind" should equal "legacy-baseline"
     And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[1].kind" should equal "umbrella-release"
     And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[1].manifest.sha256" should not be empty
-    # These literals test umbrella resolution and the explicit legacy exception.
+    # These literals test the explicit legacy exception without a manifest.
     And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[0].stacks.control-plane.version" should equal "1.0.1"
-    And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[1].stacks.control-plane.version" should equal "1.0.10"
+    And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[1].stacks.control-plane.version" should equal "${UMBRELLA_104_CONTROL}"
     And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[0].stacks.compute-plane.version" should equal "1.0.0"
     And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[0].stacks.observability.version" should equal "1.0.0"
-    And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[1].stacks.compute-plane.version" should equal "1.0.5"
-    And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[1].stacks.observability.version" should equal "1.0.0"
+    And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[1].stacks.compute-plane.version" should equal "${UMBRELLA_104_COMPUTE}"
+    And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[1].stacks.observability.version" should equal "${UMBRELLA_104_OBSERVABILITY}"
     When I successfully run command:
       """
       "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.4-to-1.1.0 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/104-110"
       """
     Then yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "summary.qualification" should equal "unqualified"
-    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[1].stacks.control-plane.version" should equal "1.1.5"
-    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[0].stacks.control-plane.version" should equal "1.0.10"
-    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[1].stacks.compute-plane.version" should equal "1.1.0"
-    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[1].stacks.observability.version" should equal "1.1.0"
+    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[0].stacks.observability.version" should equal "${UMBRELLA_104_OBSERVABILITY}"
+    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[0].stacks.compute-plane.version" should equal "${UMBRELLA_104_COMPUTE}"
+    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[1].stacks.control-plane.version" should equal "${UMBRELLA_110_CONTROL}"
+    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[0].stacks.control-plane.version" should equal "${UMBRELLA_104_CONTROL}"
+    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[1].stacks.compute-plane.version" should equal "${UMBRELLA_110_COMPUTE}"
+    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[1].stacks.observability.version" should equal "${UMBRELLA_110_OBSERVABILITY}"
     And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "conditional_checks[0].id" should equal "dynamo-nats-reloader-downgrade"
     And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "conditional_checks[0].when_applicable" should not be empty
     And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "conditional_checks[0].when_not_applicable" should not be empty
