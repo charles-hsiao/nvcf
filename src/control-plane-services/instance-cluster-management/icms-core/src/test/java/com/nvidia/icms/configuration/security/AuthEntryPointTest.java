@@ -22,6 +22,7 @@ import org.springframework.security.oauth2.server.resource.InvalidBearerTokenExc
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+import tools.jackson.databind.json.JsonMapper;
 
 class AuthEntryPointTest {
     private AuthEntryPoint entryPoint() {
@@ -60,5 +61,7 @@ class AuthEntryPointTest {
         assertThat(response.getStatus()).isEqualTo(401);
         assertThat(response.getHeader(HttpHeaders.WWW_AUTHENTICATE))
                 .contains("error=\"invalid_token\"");
+        assertThat(new JsonMapper().readTree(response.getContentAsString()).path("error").asString())
+                .isEqualTo("Authentication failure - bad signature");
     }
 }
