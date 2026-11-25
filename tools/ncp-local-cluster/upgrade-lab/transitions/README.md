@@ -85,6 +85,13 @@ The previous findings about equal plugin bytes and forward NATS versions do not 
 
 ## Execution and qualification
 
+[Issue #3558](https://github.com/dsx-ai-factory/nvcf/issues/3558) delivers candidate contracts, component reports and manual reference procedures.
+Acceptance of these definitions does not qualify either route or enable supported execution.
+Record unresolved blockers, their owners, required evidence and stop conditions before accepting the definitions.
+Runner implementation and failure-handling acceptance belong to [#3562](https://github.com/dsx-ai-factory/nvcf/issues/3562).
+End-to-end qualification, recovery rehearsals and operator-effort measurements belong to [#3563](https://github.com/dsx-ai-factory/nvcf/issues/3563).
+Resolve applicable compatibility and artifact-access gates before enabling supported execution.
+
 The [manual reference](../../../../docs/dev/upgrade-transitions.md) describes candidate action boundaries.
 The [runtime checks](runtime-prerequisites.md), [service checks](service-migrations.md)
 and [recovery checks](recovery-prerequisites.md) remain prerequisites.

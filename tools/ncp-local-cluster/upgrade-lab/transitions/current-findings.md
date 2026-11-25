@@ -108,8 +108,12 @@ SHA-256 checks verified its raw OCI index and linux/amd64 child manifest.
 Canonical source pulls still fail for all three helpers.
 The [published known issue](https://github.com/dsx-ai-factory/nvcf/pull/3346)
 records the legacy catalog gap.
-The [source-task prerequisite follow-up](https://github.com/dsx-ai-factory/nvcf/issues/3667)
-tracks the public access decision and its required qualification.
+The [source-task prerequisite decision](https://github.com/dsx-ai-factory/nvcf/issues/3667)
+closed as not planned for Phase 1.
+Phase 1 does not include a separate effort to republish these historical helper images.
+The access limitation remains a qualification prerequisite in [#3558](https://github.com/dsx-ai-factory/nvcf/issues/3558).
+[#3563](https://github.com/dsx-ai-factory/nvcf/issues/3563) requires artifact access for each qualified profile.
+Closing #3667 does not resolve access or qualify either route.
 Keep customer pullability separate from the matching-byte evidence.
 The source references, released artifacts and supported-execution settings remain unchanged.
 
