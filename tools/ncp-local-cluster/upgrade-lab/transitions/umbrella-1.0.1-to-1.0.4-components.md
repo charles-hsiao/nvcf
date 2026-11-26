@@ -14,7 +14,7 @@ Endpoint 1.0.4 original release: `nvcf/1.0.4` at `d46842d66fac896b7f7b9e8190a8f7
 
 Endpoint 1.0.4 reference: [Docs 1.0.4 matrix](https://docs.nvidia.com/nvcf/1.0.4/release-notes/compatibility-matrix).
 
-Artifact lock: `sha256:193c79bb0035fe9657e385a1a6b160ba51fc598a81f58eff16b450e481cd7f03`
+Artifact lock: `sha256:cc80f91a1a1b758665576a12e38f38a2545df0fc4f9d09d8475a67f0677e0914`
 
 Contract: `sha256:6f928142cc4ed67928b66da06f7f843454a7eb6492377c415e807807138843b7`
 

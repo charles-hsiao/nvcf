@@ -91,24 +91,24 @@
       }
     },
     {
-      "version": "1.1.0",
+      "version": "1.1.1",
       "kind": "umbrella-release",
       "stacks": {
         "compute-plane": {
-          "version": "1.1.0",
-          "source_tag": "deploy/stacks/nvcf-compute-plane/v1.1.0",
-          "source_commit": "507d8e2ece81d04b8e63f6be31a0ea2d83561b4b",
+          "version": "1.1.1",
+          "source_tag": "deploy/stacks/nvcf-compute-plane/v1.1.1",
+          "source_commit": "daf87d512a7980e3124a4d69d5e449458a5bb5e9",
           "inventory_asset": "nvcf-compute-plane-stack-inventory.json",
-          "inventory_sha256": "sha256:ee76f728cfdf8d23ded4e5e63cba0e96bb3a53b7055e5ebb966204d33f27c9d1",
-          "inventory_asset_id": 689120915
+          "inventory_sha256": "sha256:c522c360cba885ae1136905d47b30033dd14b9800df84058f0a5b0f0ea9ffbdb",
+          "inventory_asset_id": 753917372
         },
         "control-plane": {
-          "version": "1.1.5",
-          "source_tag": "deploy/stacks/self-managed/v1.1.5",
-          "source_commit": "e11b44050c3770d650d5fd4bf0b8e8bebca6786c",
+          "version": "1.1.9",
+          "source_tag": "deploy/stacks/self-managed/v1.1.9",
+          "source_commit": "859ad9e45d45f0503ea3759d7b2d07f5a5eb75df",
           "inventory_asset": "nvcf-self-managed-stack-inventory.json",
-          "inventory_sha256": "sha256:2e4ce14b997e2ceda8dbdd54419193ccdc65a1cffe65734d7d3bada3c4f2543f",
-          "inventory_asset_id": 717469660
+          "inventory_sha256": "sha256:db0872dce895352cbd2df6049ff25e9b5a21927b6f69c2fba59bf14a43be2446",
+          "inventory_asset_id": 755169744
         },
         "observability": {
           "version": "1.1.0",
@@ -119,29 +119,29 @@
           "inventory_asset_id": 710762568
         }
       },
-      "peer_matrix_edition": "1.1.0",
+      "peer_matrix_edition": "1.1.1",
       "manifest": {
-        "path": "manifests/1.1.0.json",
-        "source_commit": "2120f7aa9186391ad4f45bfaa0f5587364e1a3ff",
-        "sha256": "sha256:531239f3efca39d936d694e22f0c6fea54ead7c417b9ba8afa0781a9cc64e626"
+        "path": "manifests/1.1.1.json",
+        "source_commit": "2034fdcabd36f9119d4be9ff1ecd4ca9dd3e06b6",
+        "sha256": "sha256:e05095b005c18c091655a5f37fb796cd20ca420d48f0f7875c1f8f4f318fe9ec"
       },
       "release": {
-        "source_tag": "nvcf/1.1.0",
-        "source_commit": "2120f7aa9186391ad4f45bfaa0f5587364e1a3ff",
+        "source_tag": "nvcf/1.1.1",
+        "source_commit": "2034fdcabd36f9119d4be9ff1ecd4ca9dd3e06b6",
         "manifest": {
           "name": "manifest.json",
-          "sha256": "sha256:531239f3efca39d936d694e22f0c6fea54ead7c417b9ba8afa0781a9cc64e626",
-          "asset_id": 733711576
+          "sha256": "sha256:e05095b005c18c091655a5f37fb796cd20ca420d48f0f7875c1f8f4f318fe9ec",
+          "asset_id": 788345898
         },
         "asset_index": {
           "name": "release-assets.json",
-          "sha256": "sha256:f6f3dded2cad12679d06d7a99017d9c6197acb360f37caa5bde992ce5a5f64f1",
-          "asset_id": 733711738
+          "sha256": "sha256:2f843f53d9bc9e344153667adfed1984b8a55a008241bd9f540039698aad8438",
+          "asset_id": 788346212
         },
         "bundle": {
-          "name": "nvcf-1.1.0.tar.gz",
-          "sha256": "sha256:3690bbeca8d48821d977d941205b210dd3169994e3987918f96bef9a99359bcd",
-          "asset_id": 733711607
+          "name": "nvcf-1.1.1.tar.gz",
+          "sha256": "sha256:8f122ad03f329d62cd06eb7f3aebac3c019e4e44b0a5105b0c7b0cf20a3e2f15",
+          "asset_id": 788345966
         }
       }
     }
@@ -168,14 +168,14 @@
       "source_commit": "59d50ba4c276cfddbfe8e0661e13566c24679aca"
     },
     {
-      "edition": "1.1.0",
-      "url": "https://docs.nvidia.com/nvcf/1.1.0/release-notes/compatibility-matrix",
+      "edition": "1.1.1",
+      "url": "https://docs.nvidia.com/nvcf/1.1.1/release-notes/compatibility-matrix",
       "documented_stacks": {
-        "control-plane": "1.1.5",
-        "compute-plane": "1.1.0",
+        "compute-plane": "1.1.1",
+        "control-plane": "1.1.9",
         "observability": "1.1.0"
       },
-      "source_commit": "7040758936fd6510fe6687576027ab2e98a43cfe"
+      "source_commit": "4871271fccf00fc64f5341c303c4dd0a1058b377"
     }
   ]
 }

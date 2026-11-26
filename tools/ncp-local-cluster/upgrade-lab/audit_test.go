@@ -204,7 +204,7 @@ func TestRouteRejectsUnchangedEndpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 	var route routeContract
-	if err := readJSON("transitions/umbrella-1.0.4-to-1.1.0.json", &route); err != nil {
+	if err := readJSON("transitions/umbrella-1.0.4-to-1.1.1.json", &route); err != nil {
 		t.Fatal(err)
 	}
 	route.To = route.From
@@ -224,11 +224,19 @@ func TestOptionalDowngradeRemainsAConditionalFinding(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	id := "umbrella-1.0.4-to-1.1.0"
+	id := "umbrella-1.0.4-to-1.1.1"
 	r, err := loadRoute(filepath.Join(root, id+".json"), id, lock)
 	if err != nil {
 		t.Fatal(err)
 	}
+	r.ConditionalChecks = []conditionalCheck{{
+		ID:                "optional-artifact-downgrade",
+		AppliesWhen:       "An enabled optional component selects a lower version.",
+		WhenApplicable:    "Review the actual artifact changes before the action.",
+		WhenNotApplicable: "Retain disabled values at both endpoints; this check does not block the profile.",
+		WhenUnknown:       "The audit does not evaluate applicability.",
+		Evidence:          []string{"effective values and renders"},
+	}}
 	makeInventory := func(version string) map[string]inventory {
 		return map[string]inventory{"compute-plane": {Artifacts: []artifact{{Type: "container-image", Name: "nats-server-config-reloader", Version: version, Reference: "registry.invalid/reloader:" + version, Sources: []artifactSource{{Plane: "compute-plane", Release: "dynamo-operator", Requirement: "optional"}}}}}}
 	}
@@ -246,7 +254,7 @@ func TestOptionalDowngradeRemainsAConditionalFinding(t *testing.T) {
 	}
 	found := false
 	for _, c := range report.ConditionalChecks {
-		if c.ID == "dynamo-nats-reloader-downgrade" {
+		if c.ID == "optional-artifact-downgrade" {
 			found = strings.Contains(c.WhenNotApplicable, "disabled values at both endpoints") && strings.Contains(c.WhenUnknown, "audit does not evaluate applicability")
 		}
 	}
@@ -259,7 +267,7 @@ func TestOptionalDowngradeRemainsAConditionalFinding(t *testing.T) {
 func TestConditionalChecksRejectMissingDecisionsAndEvidence(t *testing.T) {
 	for _, missing := range []string{"not-applicable", "unknown", "evidence", "duplicate"} {
 		t.Run(missing, func(t *testing.T) {
-			root, id := "transitions", "umbrella-1.0.4-to-1.1.0"
+			root, id := "transitions", "umbrella-1.0.4-to-1.1.1"
 			lock, err := loadLock(filepath.Join(root, "artifact-lock.json"))
 			if err != nil {
 				t.Fatal(err)
@@ -429,7 +437,7 @@ func TestSourceDataGatePrecedesBackupAndHop(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, id := range []string{"umbrella-1.0.1-to-1.0.4", "umbrella-1.0.4-to-1.1.0"} {
+	for _, id := range []string{"umbrella-1.0.1-to-1.0.4", "umbrella-1.0.4-to-1.1.1"} {
 		t.Run(id, func(t *testing.T) {
 			route, err := loadRoute("transitions/"+id+".json", id, lock)
 			if err != nil {

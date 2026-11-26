@@ -1,5 +1,7 @@
 # Manual rehearsal measurement
 
+This is reference material for future execution qualification, outside Phase 1 acceptance.
+
 Use this procedure with the [manual reference](../../../../docs/dev/upgrade-transitions.md)
 and the selected route contract. It defines a repeatable measurement. It does
 not qualify either route or supply an automated upgrade runner.

@@ -1,5 +1,7 @@
 # Recovery prerequisites
 
+This is reference material for future execution qualification, outside Phase 1 acceptance.
+
 Keep source recovery requirements separate from a successful chart apply,
 component snapshot or Pod restart. Both transitions remain unqualified.
 

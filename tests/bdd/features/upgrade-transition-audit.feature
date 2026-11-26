@@ -22,11 +22,11 @@ Feature: Audit the immutable inputs for one upgrade hop
     And I export command output JSON field "stacks.observability.version" to environment variable "UMBRELLA_104_OBSERVABILITY"
     When I successfully run command:
       """
-      cat "${TRANSITION_CONTRACTS}/manifests/1.1.0.json"
+      cat "${TRANSITION_CONTRACTS}/manifests/1.1.1.json"
       """
-    And I export command output JSON field "stacks.control-plane.version" to environment variable "UMBRELLA_110_CONTROL"
-    And I export command output JSON field "stacks.compute-plane.version" to environment variable "UMBRELLA_110_COMPUTE"
-    And I export command output JSON field "stacks.observability.version" to environment variable "UMBRELLA_110_OBSERVABILITY"
+    And I export command output JSON field "stacks.control-plane.version" to environment variable "UMBRELLA_111_CONTROL"
+    And I export command output JSON field "stacks.compute-plane.version" to environment variable "UMBRELLA_111_COMPUTE"
+    And I export command output JSON field "stacks.observability.version" to environment variable "UMBRELLA_111_OBSERVABILITY"
     When I successfully run command:
       """
       "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.1-to-1.0.4 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/101-104"
@@ -47,19 +47,19 @@ Feature: Audit the immutable inputs for one upgrade hop
     And yaml file "${TRANSITION_OUTPUT}/101-104/audit.json" key "selections[1].stacks.observability.version" should equal "${UMBRELLA_104_OBSERVABILITY}"
     When I successfully run command:
       """
-      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.4-to-1.1.0 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/104-110"
+      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.4-to-1.1.1 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/104-111"
       """
-    Then yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "summary.qualification" should equal "unqualified"
-    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[0].stacks.observability.version" should equal "${UMBRELLA_104_OBSERVABILITY}"
-    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[0].stacks.compute-plane.version" should equal "${UMBRELLA_104_COMPUTE}"
-    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[1].stacks.control-plane.version" should equal "${UMBRELLA_110_CONTROL}"
-    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[0].stacks.control-plane.version" should equal "${UMBRELLA_104_CONTROL}"
-    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[1].stacks.compute-plane.version" should equal "${UMBRELLA_110_COMPUTE}"
-    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "selections[1].stacks.observability.version" should equal "${UMBRELLA_110_OBSERVABILITY}"
-    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "conditional_checks[0].id" should equal "dynamo-nats-reloader-downgrade"
-    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "conditional_checks[0].when_applicable" should not be empty
-    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "conditional_checks[0].when_not_applicable" should not be empty
-    And yaml file "${TRANSITION_OUTPUT}/104-110/audit.json" key "conditional_checks[0].when_unknown" should not be empty
+    Then yaml file "${TRANSITION_OUTPUT}/104-111/audit.json" key "summary.qualification" should equal "unqualified"
+    And yaml file "${TRANSITION_OUTPUT}/104-111/audit.json" key "selections[0].stacks.observability.version" should equal "${UMBRELLA_104_OBSERVABILITY}"
+    And yaml file "${TRANSITION_OUTPUT}/104-111/audit.json" key "selections[0].stacks.compute-plane.version" should equal "${UMBRELLA_104_COMPUTE}"
+    And yaml file "${TRANSITION_OUTPUT}/104-111/audit.json" key "selections[1].stacks.control-plane.version" should equal "${UMBRELLA_111_CONTROL}"
+    And yaml file "${TRANSITION_OUTPUT}/104-111/audit.json" key "selections[0].stacks.control-plane.version" should equal "${UMBRELLA_104_CONTROL}"
+    And yaml file "${TRANSITION_OUTPUT}/104-111/audit.json" key "selections[1].stacks.compute-plane.version" should equal "${UMBRELLA_111_COMPUTE}"
+    And yaml file "${TRANSITION_OUTPUT}/104-111/audit.json" key "selections[1].stacks.observability.version" should equal "${UMBRELLA_111_OBSERVABILITY}"
+    And yaml file "${TRANSITION_OUTPUT}/104-111/audit.json" key "conditional_checks[0].id" should equal "ha-mode-and-topology"
+    And yaml file "${TRANSITION_OUTPUT}/104-111/audit.json" key "conditional_checks[0].when_applicable" should not be empty
+    And yaml file "${TRANSITION_OUTPUT}/104-111/audit.json" key "conditional_checks[0].when_not_applicable" should not be empty
+    And yaml file "${TRANSITION_OUTPUT}/104-111/audit.json" key "conditional_checks[0].when_unknown" should not be empty
 
   Scenario: Reject peers selected from another endpoint matrix
     Given I copy the file "${TRANSITION_CONTRACTS}/artifact-lock.json" to "${TRANSITION_OUTPUT}/wrong-matrix-contracts/artifact-lock.json"
@@ -134,7 +134,7 @@ Feature: Audit the immutable inputs for one upgrade hop
       """
     And I run command:
       """
-      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.4-to-1.1.0 --inputs "${TRANSITION_OUTPUT}/changed-release" --out "${TRANSITION_OUTPUT}/changed-bundle-rejected"
+      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.4-to-1.1.1 --inputs "${TRANSITION_OUTPUT}/changed-release" --out "${TRANSITION_OUTPUT}/changed-bundle-rejected"
       """
     Then the command exit code should be 1
     And the command output should contain "release asset digest mismatch: nvcf-1.0.4.tar.gz"
@@ -142,14 +142,14 @@ Feature: Audit the immutable inputs for one upgrade hop
   Scenario: Reject an undeclared direct hop
     When I run command:
       """
-      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.1-to-1.1.0 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/direct-hop"
+      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.1-to-1.1.1 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/direct-hop"
       """
     Then the command exit code should be 1
 
   Scenario: Refuse an unimplemented mutation phase before reading credentials
     When I run command:
       """
-      "${UPGRADE_LAB}" rehearse --route umbrella-1.0.4-to-1.1.0 --run-config "${TRANSITION_OUTPUT}/absent-private-config.json" --run-dir "${TRANSITION_OUTPUT}/must-not-apply" --phase apply
+      "${UPGRADE_LAB}" rehearse --route umbrella-1.0.4-to-1.1.1 --run-config "${TRANSITION_OUTPUT}/absent-private-config.json" --run-dir "${TRANSITION_OUTPUT}/must-not-apply" --phase apply
       """
     Then the command exit code should be 1
     And the command output should contain "only prepare is implemented"
@@ -161,7 +161,14 @@ Feature: Audit the immutable inputs for one upgrade hop
       """
     When I run command:
       """
-      "${UPGRADE_LAB}" check-recovery --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.4-to-1.1.0 --baseline "${TRANSITION_OUTPUT}/empty-recovery.json" --checkpoint "${TRANSITION_OUTPUT}/empty-recovery.json" --out "${TRANSITION_OUTPUT}/must-not-recover"
+      "${UPGRADE_LAB}" check-recovery --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.4-to-1.1.1 --baseline "${TRANSITION_OUTPUT}/empty-recovery.json" --checkpoint "${TRANSITION_OUTPUT}/empty-recovery.json" --out "${TRANSITION_OUTPUT}/must-not-recover"
       """
     Then the command exit code should be 1
     And the command output should contain "recovery checkpoint does not match"
+
+  Scenario: Reject the superseded umbrella target
+    When I run command:
+      """
+      "${UPGRADE_LAB}" audit --contracts "${TRANSITION_CONTRACTS}" --route umbrella-1.0.4-to-1.1.0 --inputs "${TRANSITION_INPUTS}" --out "${TRANSITION_OUTPUT}/superseded-target"
+      """
+    Then the command exit code should be 1

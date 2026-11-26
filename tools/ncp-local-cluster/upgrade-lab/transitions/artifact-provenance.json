@@ -4,8 +4,8 @@
   "version_scope": "umbrella-release",
   "qualification": "unqualified",
   "supported_execution_enabled": false,
-  "artifact_lock_sha256": "sha256:193c79bb0035fe9657e385a1a6b160ba51fc598a81f58eff16b450e481cd7f03",
-  "scope": "Pinned manifest, original release asset and inventory identity checks plus regenerated component reports. No live upgrade qualification for these umbrella selections.",
+  "artifact_lock_sha256": "sha256:cc80f91a1a1b758665576a12e38f38a2545df0fc4f9d09d8475a67f0677e0914",
+  "scope": "Verified original manifest, asset index, bundle and inventory identities for the two lab contracts. No live upgrade or WorkloadGate qualification.",
   "reports": [
     {
       "route": "umbrella-1.0.1-to-1.0.4",
@@ -19,7 +19,7 @@
         "unordered": 0
       },
       "contract_sha256": "sha256:6f928142cc4ed67928b66da06f7f843454a7eb6492377c415e807807138843b7",
-      "component_report_sha256": "sha256:dc350bd14eb570b9fee616779a6a2fc127b3a399eae4b8f2b1980e81bb096443",
+      "component_report_sha256": "sha256:b51d204bc4ce460ae4dfe70990373f7ae4b41a5e95e23573ed40095b19922997",
       "selections": [
         {
           "version": "1.0.1",
@@ -110,18 +110,18 @@
       ]
     },
     {
-      "route": "umbrella-1.0.4-to-1.1.0",
+      "route": "umbrella-1.0.4-to-1.1.1",
       "summary": {
-        "route": "umbrella-1.0.4-to-1.1.0",
+        "route": "umbrella-1.0.4-to-1.1.1",
         "qualification": "unqualified",
-        "changed": 69,
-        "added": 2,
-        "removed": 2,
-        "backward": 12,
-        "unordered": 0
+        "changed": 58,
+        "added": 6,
+        "removed": 3,
+        "backward": 0,
+        "unordered": 3
       },
-      "contract_sha256": "sha256:263d784e519535e1826fcf97cceb38754e0a86b6f066b9c2b53ec9566e394698",
-      "component_report_sha256": "sha256:6944dda9c25209c5e42867130923b088476e778e37ce29bd17e30d5c54eacfae",
+      "contract_sha256": "sha256:63772835a40420415875b4c89607be9dcdf2fd7b4725f01ffc37113c0986f65b",
+      "component_report_sha256": "sha256:4ceb0831588270b2d7da4c81adaafa45f9a87338e2f86969ce3a0b4dbb28f249",
       "selections": [
         {
           "version": "1.0.4",
@@ -179,24 +179,24 @@
           }
         },
         {
-          "version": "1.1.0",
+          "version": "1.1.1",
           "kind": "umbrella-release",
           "stacks": {
             "compute-plane": {
-              "version": "1.1.0",
-              "source_tag": "deploy/stacks/nvcf-compute-plane/v1.1.0",
-              "source_commit": "507d8e2ece81d04b8e63f6be31a0ea2d83561b4b",
+              "version": "1.1.1",
+              "source_tag": "deploy/stacks/nvcf-compute-plane/v1.1.1",
+              "source_commit": "daf87d512a7980e3124a4d69d5e449458a5bb5e9",
               "inventory_asset": "nvcf-compute-plane-stack-inventory.json",
-              "inventory_sha256": "sha256:ee76f728cfdf8d23ded4e5e63cba0e96bb3a53b7055e5ebb966204d33f27c9d1",
-              "inventory_asset_id": 689120915
+              "inventory_sha256": "sha256:c522c360cba885ae1136905d47b30033dd14b9800df84058f0a5b0f0ea9ffbdb",
+              "inventory_asset_id": 753917372
             },
             "control-plane": {
-              "version": "1.1.5",
-              "source_tag": "deploy/stacks/self-managed/v1.1.5",
-              "source_commit": "e11b44050c3770d650d5fd4bf0b8e8bebca6786c",
+              "version": "1.1.9",
+              "source_tag": "deploy/stacks/self-managed/v1.1.9",
+              "source_commit": "859ad9e45d45f0503ea3759d7b2d07f5a5eb75df",
               "inventory_asset": "nvcf-self-managed-stack-inventory.json",
-              "inventory_sha256": "sha256:2e4ce14b997e2ceda8dbdd54419193ccdc65a1cffe65734d7d3bada3c4f2543f",
-              "inventory_asset_id": 717469660
+              "inventory_sha256": "sha256:db0872dce895352cbd2df6049ff25e9b5a21927b6f69c2fba59bf14a43be2446",
+              "inventory_asset_id": 755169744
             },
             "observability": {
               "version": "1.1.0",
@@ -207,45 +207,43 @@
               "inventory_asset_id": 710762568
             }
           },
-          "peer_matrix_edition": "1.1.0",
+          "peer_matrix_edition": "1.1.1",
           "manifest": {
-            "path": "manifests/1.1.0.json",
-            "source_commit": "2120f7aa9186391ad4f45bfaa0f5587364e1a3ff",
-            "sha256": "sha256:531239f3efca39d936d694e22f0c6fea54ead7c417b9ba8afa0781a9cc64e626"
+            "path": "manifests/1.1.1.json",
+            "source_commit": "2034fdcabd36f9119d4be9ff1ecd4ca9dd3e06b6",
+            "sha256": "sha256:e05095b005c18c091655a5f37fb796cd20ca420d48f0f7875c1f8f4f318fe9ec"
           },
           "release": {
-            "source_tag": "nvcf/1.1.0",
-            "source_commit": "2120f7aa9186391ad4f45bfaa0f5587364e1a3ff",
+            "source_tag": "nvcf/1.1.1",
+            "source_commit": "2034fdcabd36f9119d4be9ff1ecd4ca9dd3e06b6",
             "manifest": {
               "name": "manifest.json",
-              "sha256": "sha256:531239f3efca39d936d694e22f0c6fea54ead7c417b9ba8afa0781a9cc64e626",
-              "asset_id": 733711576
+              "sha256": "sha256:e05095b005c18c091655a5f37fb796cd20ca420d48f0f7875c1f8f4f318fe9ec",
+              "asset_id": 788345898
             },
             "asset_index": {
               "name": "release-assets.json",
-              "sha256": "sha256:f6f3dded2cad12679d06d7a99017d9c6197acb360f37caa5bde992ce5a5f64f1",
-              "asset_id": 733711738
+              "sha256": "sha256:2f843f53d9bc9e344153667adfed1984b8a55a008241bd9f540039698aad8438",
+              "asset_id": 788346212
             },
             "bundle": {
-              "name": "nvcf-1.1.0.tar.gz",
-              "sha256": "sha256:3690bbeca8d48821d977d941205b210dd3169994e3987918f96bef9a99359bcd",
-              "asset_id": 733711607
+              "name": "nvcf-1.1.1.tar.gz",
+              "sha256": "sha256:8f122ad03f329d62cd06eb7f3aebac3c019e4e44b0a5105b0c7b0cf20a3e2f15",
+              "asset_id": 788345966
             }
           }
         }
       ]
     }
   ],
-  "historical_evidence": {
-    "path": "historical/stack-only-artifact-provenance.json",
-    "sha256": "sha256:f49938d3b07c0f707ef42724569d21b70827568056b24226e20bd5ce6e3bd484",
-    "source_commit": "aa1270cdbe356845d9d873d9424231b17be84c5b",
-    "scope": "Original stack-only artifact inspections and report identities. These do not qualify the new umbrella routes."
-  },
-  "required_evidence": [
-    "Exact selected chart/image inspections and effective profile renders",
-    "Migration, OpenBao/JWT, NATS and cert-manager regression review",
-    "Source/target HA and mixed-fleet workload acceptance",
-    "Consistent restore, interruption/recovery and measured operator effort"
-  ]
+  "published_guidance": {
+    "release_notes": "https://github.com/dsx-ai-factory/nvcf/blob/2034fdcabd36f9119d4be9ff1ecd4ca9dd3e06b6/deploy/releases/1.1.1/notes.md",
+    "upgrade_guide": "https://github.com/dsx-ai-factory/nvcf/blob/517ebf322e217adfb274a34ea5c5ed03ff74b34e/docs/overview/release-notes/1.0.4-to-1.1.1-upgrade.md",
+    "scope": "Release notes report single-cluster and multi-cluster AWS validation of the published guides. This is separate from the lab contracts and WorkloadGate acceptance.",
+    "known_limits": [
+      "The guide did not live-test control 1.1.9 with compute 1.0.5 during the upgrade window.",
+      "Single-member OpenBao is not covered by the guide.",
+      "Cross-cluster AWS compute metrics remain experimental."
+    ]
+  }
 }

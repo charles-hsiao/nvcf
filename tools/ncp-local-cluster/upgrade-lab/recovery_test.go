@@ -19,7 +19,7 @@ func recoveryFixture(t *testing.T) (recoveryInventory, recoveryCheckpoint, route
 	if err != nil {
 		t.Fatal(err)
 	}
-	route, err := loadRoute("transitions/umbrella-1.0.4-to-1.1.0.json", "umbrella-1.0.4-to-1.1.0", lock)
+	route, err := loadRoute("transitions/umbrella-1.0.4-to-1.1.1.json", "umbrella-1.0.4-to-1.1.1", lock)
 	if err != nil {
 		t.Fatal(err)
 	}

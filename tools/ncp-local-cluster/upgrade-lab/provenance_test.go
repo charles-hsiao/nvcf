@@ -18,10 +18,6 @@ func TestCommittedProvenanceBindsCurrentReports(t *testing.T) {
 			ContractSHA string `json:"contract_sha256"`
 			ReportSHA   string `json:"component_report_sha256"`
 		} `json:"reports"`
-		Historical struct {
-			Path string `json:"path"`
-			SHA  string `json:"sha256"`
-		} `json:"historical_evidence"`
 	}
 	if err := readJSON("transitions/artifact-provenance.json", &provenance); err != nil {
 		t.Fatal(err)
@@ -45,12 +41,5 @@ func TestCommittedProvenanceBindsCurrentReports(t *testing.T) {
 		if report.ContractSHA != route.SHA256 || report.ReportSHA != checksum(raw) {
 			t.Fatalf("stale report binding: %s", report.Route)
 		}
-	}
-	raw, err := os.ReadFile(filepath.Join("transitions", provenance.Historical.Path))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if checksum(raw) != provenance.Historical.SHA {
-		t.Fatal("historical provenance bytes changed")
 	}
 }

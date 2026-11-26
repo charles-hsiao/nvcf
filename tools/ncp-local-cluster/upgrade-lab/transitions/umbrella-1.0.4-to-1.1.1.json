@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
-  "id": "umbrella-1.0.4-to-1.1.0",
+  "id": "umbrella-1.0.4-to-1.1.1",
   "from": "1.0.4",
-  "to": "1.1.0",
+  "to": "1.1.1",
   "qualification": "unqualified",
   "supported_execution_enabled": false,
   "topology": {
@@ -39,12 +39,12 @@
     "control-plane/worker-callback-proxy"
   ],
   "availability": {
-    "expectation": "Measure existing invocation success and outage intervals per action. No zero-downtime guarantee or universal maintenance-window requirement.",
+    "expectation": "The published guide requires a maintenance window and paused submissions. Record availability per action without a zero-downtime claim.",
     "external_callers": "explicit manual pause/resume checkpoint",
     "drain": "Never purge, cancel or delete workloads to force completion."
   },
   "temporary_combinations": {
-    "status": "candidates-requiring-live-evidence",
+    "status": "published-guide-limits-and-unqualified-lab-profile",
     "combinations": [
       {
         "control-plane": "1.0.10",
@@ -54,31 +54,31 @@
         "observability": "1.0.0"
       },
       {
-        "control-plane": "1.1.5",
+        "control-plane": "1.1.9",
         "compute-plane": [
           "1.0.5"
         ],
         "observability": "1.0.0"
       },
       {
-        "control-plane": "1.1.5",
+        "control-plane": "1.1.9",
         "compute-plane": [
           "1.0.5",
-          "1.1.0"
+          "1.1.1"
         ],
         "observability": "1.0.0"
       },
       {
-        "control-plane": "1.1.5",
+        "control-plane": "1.1.9",
         "compute-plane": [
-          "1.1.0"
+          "1.1.1"
         ],
         "observability": "1.0.0"
       },
       {
-        "control-plane": "1.1.5",
+        "control-plane": "1.1.9",
         "compute-plane": [
-          "1.1.0"
+          "1.1.1"
         ],
         "observability": "1.1.0"
       }
@@ -108,6 +108,7 @@
       "phase": "before-hop",
       "needs": [],
       "preconditions": [
+        "The source is umbrella 1.0.4. Earlier 1.0.x releases must complete that required release stop first.",
         "Umbrella source/target selections and all three stack identities are locked.",
         "Required chart/image access and selected package/image inspection pass.",
         "All route-specific execution blockers have explicit reviewed resolution."
@@ -263,7 +264,8 @@
       ],
       "preconditions": [
         "Selected chart hook order and migration-helper interactions are reviewed.",
-        "Source catalog SHA, plugin bytes, mounts, credentials and Raft recovery material are recorded."
+        "Source catalog SHA, plugin bytes, mounts, credentials and Raft recovery material are recorded.",
+        "Source and target select server 2.6.3-nv-1.3.9 and the versioned JWT lifecycle. Review chart 0.37.1 and migrations 0.23.4; do not repeat the legacy plugin bridge."
       ],
       "postconditions": [
         "Existing mounts and old/new JWT canaries pass without catalog SHA rewriting.",
@@ -293,7 +295,8 @@
       ],
       "postconditions": [
         "Core and remaining enabled control-plane stages become ready without changing HA topology or identities.",
-        "Original and new workloads work against compute 1.0.5 before the next action."
+        "Original and new workloads work against compute 1.0.5 before the next action.",
+        "Follow the published control-plane sequence through state metrics, autoscaling, applicable Cassandra replication and the receipt before upgrading compute clusters."
       ],
       "evidence": [
         "rollout and runtime images",
@@ -315,11 +318,11 @@
         "Recorded source and target compute inventories, exact artifacts and effective values are verified.",
         "Pause/drain, consistent restore and applicable control-plane/JWT prerequisites passed.",
         "The candidate temporary combinations are reviewed for this exact control plane; admission and hostname policies required by the selected packages are satisfied.",
-        "Determine dynamo-nats-reloader-downgrade applicability from effective source/target values and renders; satisfy applicable checks or record evidence that the downgrade is absent.",
-        "Keep the independent Observability software at 1.0.0. Assemble a new intermediate workspace with the selected target component and the immutable source Observability directory; do not apply the final target sibling at 1.1.0 early."
+        "Keep the independent Observability software at 1.0.0. Assemble a new intermediate workspace with the selected target component and the immutable source Observability directory; do not apply the final target sibling at 1.1.0 early.",
+        "Review optional-profile-artifacts and the documented control 1.1.9 with compute 1.0.5 validation gap before advancing."
       ],
       "postconditions": [
-        "Each existing compute cluster advances from 1.0.5 to 1.1.0 without re-registration, identity loss or topology changes.",
+        "Each existing compute cluster advances from 1.0.5 to 1.1.1 without re-registration, identity loss or topology changes.",
         "After the first cluster update, original and new function/task invocations and secret injection pass on both source and target compute clusters.",
         "Final invocations and deployments pass on both target compute clusters before advancing."
       ],
@@ -371,7 +374,7 @@
         "Original and new function/task invocations work on both target compute clusters.",
         "Credentials, registrations, workload IDs and durable data are preserved.",
         "Final control/compute/observability versions match the locked endpoint.",
-        "Mixed-fleet checkpoints, availability and hands-on effort are recorded; callers resume only after acceptance."
+        "Record remaining temporary-state and workload validation gaps. This lab does not enable execution or claim operator-effort improvement."
       ],
       "evidence": [
         "original/new HTTP and gRPC canary results",
@@ -391,7 +394,10 @@
     "Do not reuse source chart/image pins as site overrides; verify every effective pin against the selected inventory.",
     "Use exact selected chart packages rather than current source defaults. Record differences between packaged defaults, inventory references and stack source.",
     "Resolve umbrella endpoints through their pinned released manifests. Verify each selected stack tag, source commit and inventory digest. Version 1.0.1 uses its frozen legacy matrix without a synthetic manifest.",
-    "Select source and target peer versions from their separate recorded matrices. Preserve registration files, credentials and topology while changing the selected compute/observability releases."
+    "Select source and target peer versions from their separate recorded matrices. Preserve registration files, credentials and topology while changing the selected compute/observability releases.",
+    "Use umbrella 1.0.4 as the required stop for earlier 1.0.x releases. The target manifest previous_version is release ancestry, not an additional upgrade stop.",
+    "Choose highAvailability.mode explicitly. Review preferred defaults, replica sizing, placement, storage and secrets-file overrides before applying.",
+    "Review the enabled Event Ledger default, optional worker callback proxy, retained worker images and Observability label changes against the selected profile."
   ],
   "migration_checks": [
     "Compare actual Cassandra migration images, SQL trees and upgrade tasks for these umbrella selections. Preserve clean ledgers, source data and RF/DC mappings.",
@@ -403,48 +409,45 @@
   ],
   "version_scope": "umbrella-release",
   "comparison_scope": {
-    "control_plane": "1.0.10 to 1.1.5",
-    "compute_plane": "1.0.5 to 1.1.0",
+    "control_plane": "1.0.10 to 1.1.9",
+    "compute_plane": "1.0.5 to 1.1.1",
     "observability": "1.0.0 to 1.1.0",
     "peer_selection": "Use released umbrella manifests. Use the frozen legacy matrix only for baseline 1.0.1.",
     "mixed_compute_fleet": "Candidate states requiring independent live acceptance; no supported execution is enabled."
   },
   "execution_blockers": [
-    "The umbrella scope changes the control-plane endpoint to stack 1.0.10. Recheck action ordering, effective configuration, migration/runtime behavior and recovery for these exact inputs. Prior stack 1.0.4 rehearsals do not satisfy this gate.",
-    "Before supported execution, bind enabled-profile artifact coverage and migration/runtime acceptance to the exact artifacts, configuration, topology and current run.",
-    "Require matching HA preservation, mixed-fleet, consistent restore and end-to-end workload evidence for the intended profile. Scoped laboratory acceptance does not qualify broader configurations or failure recovery.",
-    "For the selected OpenBao images, verify the live catalog and plugin hashes, Raft/member rotation, retained issuer/key/mount identities, old/new JWTs and fresh injection. Compare actual selected plugin bytes and bridge requirements before applying either route.",
-    "Before backup or any hop action, require source-data-prerequisites with zero missing live requests, mismatches or failures; preserve the validated data epoch through the backup.",
-    "For drained-memory-cold-restore, require matching paused-source observations and consistent isolated full-cohort restore acceptance. Nonempty or in-flight memory recovery remains unsupported; an earlier restore does not establish recovery from a later migration failure."
+    "This lab contract remains unqualified and supported execution remains disabled. Published guide validation does not validate this lab profile or WorkloadGate integration.",
+    "The published guide did not live-test control 1.1.9 with compute 1.0.5 during the upgrade window. Require matching evidence before accepting that temporary state.",
+    "Bind artifact access, enabled-profile renders and migration evidence to the exact artifacts, configuration, topology and run.",
+    "Preserve current source-data checks and a reviewed consistent recovery boundary before any future upgrade execution.",
+    "Review OpenBao chart and migration changes while retaining its versioned JWT lifecycle, original identities and required plugins."
   ],
   "matrix_references": {
     "source_edition": "1.0.4",
-    "target_reference_edition": "1.1.0",
+    "target_reference_edition": "1.1.1",
     "interpretation": "All three endpoint stacks match the released umbrella manifest, except legacy baseline 1.0.1. Final versions do not qualify temporary or mixed-fleet states."
   },
   "conditional_checks": [
     {
-      "id": "dynamo-nats-reloader-downgrade",
-      "applies_when": "Effective source/target addons.dynamoOperator.enabled values and rendered manifests show Dynamo enabled and an actual nats-server-config-reloader downgrade from 0.25.0 to 0.24.0.",
-      "when_applicable": "Block the affected compute action until actual image/chart differences, fix retention and configuration-reload behavior are verified. A lower version alone does not prove runtime failure.",
-      "when_not_applicable": "Retain the inventory finding; this check does not block the profile when source/target render evidence rules out the downgrade. For disabled Dynamo, require disabled values at both endpoints and no reloader container in either render. Unexpected feature removal needs separate review.",
-      "when_unknown": "Resolve effective source/target values and renders before the affected compute action. Optional inventory status and disabled defaults are not evidence that the selected profile omits Dynamo. The audit does not evaluate applicability.",
+      "id": "ha-mode-and-topology",
+      "applies_when": "The selected highAvailability.mode or effective replica, placement and storage settings differ from the source profile.",
+      "when_applicable": "Review capacity, replica sizing, Cassandra replication and placement before the affected action. HA conversion requires separate qualification.",
+      "when_not_applicable": "Retain effective values and renders that demonstrate unchanged topology.",
+      "when_unknown": "Resolve the selected mode and render both endpoints before the affected action. The audit does not evaluate applicability.",
       "evidence": [
-        "effective source and target addons.dynamoOperator.enabled values",
-        "source and target rendered Dynamo/NATS manifests and exact reloader image references, or verified absence at both endpoints",
-        "when applicable: image/chart change comparison, fix-retention review and runtime configuration-reload results"
+        "effective highAvailability.mode and secrets-file overrides",
+        "source and target replicas, placement, storage and Cassandra RF/DC settings"
       ]
     },
     {
-      "id": "control-artifact-regressions",
-      "applies_when": "Effective source/target values and renders select backward or removed control-plane artifacts from the component report.",
-      "when_applicable": "Block the affected action until artifact compatibility, retained fixes, data formats and recovery pass review and runtime checks. Review cert-manager, NATS, OpenBao, migration consumers and receipt helpers separately.",
-      "when_not_applicable": "Record values and renders that establish absence. Unexpected removal of an enabled feature requires a separate preservation review.",
-      "when_unknown": "Stop before the affected action until effective values and rendered references establish applicability. A newer umbrella number does not establish forward component selection.",
+      "id": "optional-profile-artifacts",
+      "applies_when": "Effective values enable or change optional components, worker sidecars or external image overrides.",
+      "when_applicable": "Review the selected references, access and prerequisites for each enabled component.",
+      "when_not_applicable": "Retain values and renders that demonstrate absence. An inventory entry alone does not establish runtime use.",
+      "when_unknown": "Resolve effective values and rendered references before the affected action.",
       "evidence": [
-        "effective values and rendered artifact references",
-        "artifact and retained-fix comparisons",
-        "applicable data, lifecycle, workload and recovery results"
+        "effective feature flags and image overrides",
+        "rendered references and matching inventories"
       ]
     }
   ],

@@ -1,7 +1,6 @@
 # Upgrade transition lab
 
-Audit the exact inputs for `umbrella-1.0.1-to-1.0.4` or `umbrella-1.0.4-to-1.1.0` before
-starting the manual HA rehearsal. This module implements `fetch`, `audit`,
+Audit the exact inputs for `umbrella-1.0.1-to-1.0.4` or `umbrella-1.0.4-to-1.1.1` as reviewed planning inputs. This module implements `fetch`, `audit`,
 `probe`, `check-recovery` and `rehearse --phase prepare`. It does not create
 clusters or execute upgrades.
 
@@ -9,6 +8,9 @@ The lab-owned contracts, artifact lock and reports live in
 [`transitions/`](transitions/README.md). They are not required deployment inputs.
 See [the rehearsal procedure](../../../docs/dev/upgrade-transitions.md).
 No new third-party dependencies are required.
+Phase 1 accepts planning inputs and dependency contracts.
+Artifact probes, render preparation and recovery checks remain developer helpers.
+Their execution and complete route qualification are separate work.
 
 ## Prepare and compare
 
@@ -18,7 +20,7 @@ original release manifests, asset indexes, bundles and stack inventories.
 Route versions identify umbrella releases.
 Version 1.0.1 is an explicit legacy baseline without an umbrella manifest.
 Umbrella 1.0.4 selects control 1.0.10, compute 1.0.5 and Observability 1.0.0.
-Umbrella 1.1.0 selects control 1.1.5, compute 1.1.0 and Observability 1.1.0.
+Umbrella 1.1.1 selects control 1.1.9, compute 1.1.1 and Observability 1.1.0.
 The loader checks all three stacks against pinned manifests and documentation matrices.
 
 ```sh
@@ -32,17 +34,17 @@ export UPGRADE_RECORD="$(mktemp -d)"
 /tmp/nvcf-upgrade-lab audit --route umbrella-1.0.1-to-1.0.4 \
   --inputs "$UPGRADE_RECORD/inputs-101-104" --out "$UPGRADE_RECORD/audit-101-104"
 
-/tmp/nvcf-upgrade-lab fetch --route umbrella-1.0.4-to-1.1.0 \
-  --out "$UPGRADE_RECORD/inputs-104-110"
-/tmp/nvcf-upgrade-lab audit --route umbrella-1.0.4-to-1.1.0 \
-  --inputs "$UPGRADE_RECORD/inputs-104-110" --out "$UPGRADE_RECORD/audit-104-110"
+/tmp/nvcf-upgrade-lab fetch --route umbrella-1.0.4-to-1.1.1 \
+  --out "$UPGRADE_RECORD/inputs-104-111"
+/tmp/nvcf-upgrade-lab audit --route umbrella-1.0.4-to-1.1.1 \
+  --inputs "$UPGRADE_RECORD/inputs-104-111" --out "$UPGRADE_RECORD/audit-104-111"
 ```
 
 Fetch verifies remote manifest bytes at their pinned commits.
 It then verifies original release assets and inventories by SHA-256.
 The asset index must bind the same manifest, bundle and three inventories.
 Audit rejects changed manifests or selections that differ from those manifests.
-Old stack-only route IDs fail validation. Their checkpoints cannot resume these routes. Audit rechecks the release assets and inventories and writes `audit.json` and
+Old stack-only route IDs and the superseded umbrella 1.1.0 target fail validation. Their checkpoints cannot resume these routes. Audit rechecks the release assets and inventories and writes `audit.json` and
 `components.md`, including provenance and declared execution blockers.
 Comparison retains each consumer's helper versions. Multiple versions within
 one consumer require render review; the tool does not guess a version pairing.
@@ -67,8 +69,7 @@ all required inventory artifacts are checked conservatively, including
 operator-created images. This does not replace a profile render or node pull
 test. A failure is an access blocker, not proof that an image does not exist.
 Probe does not promote optional artifacts to required from site values. Check
-enabled optional artifacts separately. A skipped Dynamo artifact is not proof
-that its conditional review is inapplicable.
+enabled optional artifacts separately. A skipped optional artifact does not establish that the selected profile omits it.
 
 Bundled charts are read with `git archive` from the exact owning stack commit.
 The source repository must contain those commits. No chart templates are
@@ -85,9 +86,9 @@ never in command arguments. The file must not be committed.
 ```sh
 export UPGRADE_LAB_SOURCE_REPO="$PWD"
 # Optional: export UPGRADE_LAB_HELM_REPOSITORY_CONFIG=/private/repositories.json
-/tmp/nvcf-upgrade-lab probe --route umbrella-1.0.4-to-1.1.0 \
-  --inputs "$UPGRADE_RECORD/inputs-104-110" \
-  --out "$UPGRADE_RECORD/access-104-110" --timeout 30s
+/tmp/nvcf-upgrade-lab probe --route umbrella-1.0.4-to-1.1.1 \
+  --inputs "$UPGRADE_RECORD/inputs-104-111" \
+  --out "$UPGRADE_RECORD/access-104-111" --timeout 30s
 ```
 
 An access probe can report `running` while incomplete. Only `complete: true` and
@@ -140,7 +141,7 @@ stacks, then stops with `blocked` because compute render evidence is missing.
 This partial preparation cannot establish complete profile applicability.
 
 ```sh
-/tmp/nvcf-upgrade-lab rehearse --route umbrella-1.0.4-to-1.1.0 \
+/tmp/nvcf-upgrade-lab rehearse --route umbrella-1.0.4-to-1.1.1 \
   --run-config /private/upgrade-run.json \
   --run-dir /private/new-upgrade-run --phase prepare
 ```
@@ -184,7 +185,7 @@ versions can omit configuration fields that monitoring includes. Do not remove
 those fields to make a comparison pass.
 
 ```sh
-/tmp/nvcf-upgrade-lab check-recovery --route umbrella-1.0.4-to-1.1.0 \
+/tmp/nvcf-upgrade-lab check-recovery --route umbrella-1.0.4-to-1.1.1 \
   --baseline /private/frozen-nats-inventory.json \
   --checkpoint /private/paused-source-checkpoint.json \
   --out /private/new-recovery-check

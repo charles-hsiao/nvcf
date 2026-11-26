@@ -1,169 +1,81 @@
-# Umbrella upgrade rehearsal draft
+# Umbrella upgrade planning reference
 
-This draft covers [issue #3558](https://github.com/dsx-ai-factory/nvcf/issues/3558).
-Both candidates remain unqualified. Supported execution remains disabled.
-The lab compares artifacts and prepares renders. Operators must review and qualify each actual deployment profile.
+This reference covers release inputs and prerequisite contracts for
+[issue #3558](https://github.com/dsx-ai-factory/nvcf/issues/3558).
+Phase 1 delivers shared planning and WorkloadGate acceptance.
+The lab audits artifacts and describes checks. It does not execute an upgrade.
 
-## Scope and version identities
+## Version identities and required stop
 
-| Route | Source control / compute / observability | Target control / compute / observability |
+| Route | Source control / compute / Observability | Target control / compute / Observability |
 | --- | --- | --- |
 | Legacy NVCF 1.0.1 to umbrella 1.0.4 | 1.0.1 / 1.0.0 / 1.0.0 | 1.0.10 / 1.0.5 / 1.0.0 |
-| Umbrella 1.0.4 to umbrella 1.1.0 | 1.0.10 / 1.0.5 / 1.0.0 | 1.1.5 / 1.1.0 / 1.1.0 |
+| Umbrella 1.0.4 to umbrella 1.1.1 | 1.0.10 / 1.0.5 / 1.0.0 | 1.1.9 / 1.1.1 / 1.1.0 |
 
-Use umbrella versions for route endpoints and documentation indexing.
-Resolve each endpoint through its pinned released manifest.
-The first source is a legacy baseline without an umbrella manifest.
-Its frozen documentation matrix selects its three stacks.
-Do not create a synthetic released manifest for that baseline.
-Do not infer component versions from an umbrella number.
+Umbrella 1.0.4 is the required release stop before 1.1.1 for earlier 1.0.x releases.
+The 1.1.1 manifest's `previous_version: 1.1.0` records release ancestry.
+It does not introduce a 1.1.0 stop.
+The legacy 1.0.1 baseline has no umbrella manifest. Use its frozen matrix and original inventories.
 
-Read the [artifact lock](../../tools/ncp-local-cluster/upgrade-lab/transitions/artifact-lock.json),
-[first contract](../../tools/ncp-local-cluster/upgrade-lab/transitions/umbrella-1.0.1-to-1.0.4.json)
-and [second contract](../../tools/ncp-local-cluster/upgrade-lab/transitions/umbrella-1.0.4-to-1.1.0.json).
-The [current findings](../../tools/ncp-local-cluster/upgrade-lab/transitions/README.md) identify artifact regressions and remaining checks.
-Final endpoint selections do not qualify intermediate or mixed-fleet states.
+The [artifact lock](../../tools/ncp-local-cluster/upgrade-lab/transitions/artifact-lock.json)
+pins publication commits, original asset IDs, manifests, bundles and inventory digests.
+Read the [first contract](../../tools/ncp-local-cluster/upgrade-lab/transitions/umbrella-1.0.1-to-1.0.4.json),
+[second contract](../../tools/ncp-local-cluster/upgrade-lab/transitions/umbrella-1.0.4-to-1.1.1.json)
+and [current findings](../../tools/ncp-local-cluster/upgrade-lab/transitions/current-findings.md).
+Keep release publication commits separate from each manifest's source provenance commit.
 
-## Before the hop
+## Published guidance and evidence
 
-1. Run the lab's [fetch and audit commands](../../tools/ncp-local-cluster/upgrade-lab/README.md).
-   Verify original manifest, asset index and bundle hashes.
-   Verify the product tag and each selected stack tag, commit and original inventory digest.
-   Stop on changed identities, unavailable artifacts or unresolved compatibility.
-2. Obtain selected chart packages and images.
-   Record package hashes, platform digests and effective helper references.
-   Compare packaged defaults, site values and rendered references.
-   Verify artifact access from the intended environment. Metadata access does not prove node pulls.
-3. Review actual migration files, service tasks and OpenBao hooks.
-   Determine bridge requirements from the selected artifacts.
-   Do not borrow a later procedure without an explicit artifact and lifecycle review.
-4. Merge source defaults, source site values and target defaults.
-   Preserve secrets, original registrations, credentials, workload IDs and topology.
-   Preserve replicas, Cassandra RF/DC mappings, NATS replication, storage and placement.
-   Record tool versions, configuration digests and private render differences.
-5. Follow repository safety rules before creating a fresh isolated HA baseline.
-   Use explicit contexts, unique ports, private configuration and new artifact directories.
-   Do not change the default Kubernetes context.
-6. Retain two existing compute clusters and their original registration files.
-   Record original/new HTTP and gRPC invocations, tasks, secret injection, JWTs and durable data.
-   Record source quorum, catalog/plugin hashes, mount IDs and cluster identities.
-7. Pause callers and drain pending invocations and tasks through their native lifecycles.
-   Pause affected source writers for the final data checks.
-   Do not purge queues, cancel tasks or delete workloads to satisfy the drain.
-8. Complete the [service data prerequisites](../../tools/ncp-local-cluster/upgrade-lab/transitions/service-migrations.md).
-   Require independent non-null lookup IDs, matching authoritative requests and complete scan counters.
-   Preserve the paused data epoch through backup.
-9. Create a consistent Cassandra, NATS, OpenBao and Kubernetes backup.
-   Demonstrate isolated full-cohort restore before the hop.
-   The candidate [recovery profile](../../tools/ncp-local-cluster/upgrade-lab/transitions/recovery-prerequisites.md) requires drained memory streams.
-   Preserve stream/consumer configurations and record native sequence/cursor resets.
-   Nonempty or in-flight memory recovery remains unsupported. Helm rollback does not restore data.
+The [1.1.1 release notes](https://github.com/dsx-ai-factory/nvcf/blob/2034fdcabd36f9119d4be9ff1ecd4ca9dd3e06b6/deploy/releases/1.1.1/notes.md)
+report single-cluster and multi-cluster AWS validation of the published upgrade guides.
+Use the [1.0.4 to 1.1.1 procedure](https://github.com/dsx-ai-factory/nvcf/blob/517ebf322e217adfb274a34ea5c5ed03ff74b34e/docs/overview/release-notes/1.0.4-to-1.1.1-upgrade.md)
+for its supported starting release and documented limits.
+Earlier 1.0.x releases first follow the documented 1.0.4 upgrade stop.
 
-## Isolated diagnostic runs
+The guide did not live-test control 1.1.9 with compute 1.0.5 during the upgrade window.
+Single-member OpenBao is not covered. Cross-cluster AWS compute metrics remain experimental.
+Keep these limits visible in plans and procedure links.
 
-An operator can authorize an isolated lab run to investigate a known
-compatibility blocker. Record the authorization, exact artifacts, unresolved
-blockers and expected stop boundary before mutation. Require a verified source
-baseline and a demonstrated consistent restore before any upgrade action.
-Stop at the first failed or unknown runtime gate, restore the source cohort,
-and report later stages as unexecuted. Do not replace selected artifacts or
-waive identity, backup or restore checks to continue.
+Both lab contracts remain `unqualified` with `supported_execution_enabled: false`.
+Published procedure evidence does not establish this lab profile's qualification or WorkloadGate acceptance.
+The superseded 1.1.0 target and its obsolete evidence are no longer active lab inputs.
 
-A diagnostic run does not satisfy a blocked contract precondition. A reproduced
-failure and successful restore do not qualify the upgrade or remove the
-published 1.0.4 to 1.1.0 upgrade restriction.
+## Planning prerequisites
 
-## Candidate action order
+1. Resolve all three endpoint stacks from the pinned released manifests.
+   Use the explicit legacy exception only for 1.0.1.
+2. Verify original manifest, asset index, bundle and inventory identities.
+   Record effective chart/image references and missing coverage.
+3. Record source data requirements, migration evidence, expected upstream revisions and runtime health checks.
+   Keep known blockers, owners and required evidence visible.
+4. Choose the HA mode explicitly and review replica, storage and placement changes.
+   The new default is `preferred`.
+5. Review Event Ledger, optional callbacks, worker images, registration and private mirror settings.
+   Preserve secrets outside plans and reports.
+6. Preserve every applicable required stop and the declared stack order.
+   A checkpoint inside a transition is not another release stop.
 
-The following sequence is a candidate for new review and rehearsal.
-Earlier stack-only rehearsal results do not establish this sequence for stack 1.0.10.
-Recheck hooks, admission policies, migrations and intermediate combinations before each action.
+These entries describe checks. Automated discovery, configuration migration and preflight require separate planning.
 
-| Route | Candidate sequence after source data and restore gates |
-| --- | --- |
-| Legacy 1.0.1 to umbrella 1.0.4 | Update retained compute clusters individually from 1.0.0 to 1.0.5. Check mixed-fleet behavior. Apply reviewed dependency, OpenBao and core stages. Keep Observability 1.0.0. Complete acceptance. |
-| Umbrella 1.0.4 to 1.1.0 | Apply reviewed dependency, OpenBao and core stages. Check target control with compute 1.0.5. Update compute clusters individually to 1.1.0. Check mixed-fleet behavior. Update Observability last. Complete acceptance. |
+## Second-hop order
 
-Each contract records dependencies, owners, preconditions, postconditions, evidence, timeouts and recovery boundaries.
-These fields describe operator checks. The lab does not execute their predicates or actions.
-A Ready Pod, completed Job or release receipt alone does not establish success.
+Follow the published procedure: dependencies and migrations, OpenBao checks,
+core services, state metrics and autoscaling, applicable Cassandra replication,
+then the receipt and control-plane verification before compute clusters.
+The source and target retain OpenBao server 2.6.3-nv-1.3.9 and the versioned JWT lifecycle.
+Review chart 0.37.1 and migrations 0.23.4 without repeating the first hop's legacy bridge.
 
-| Action | Required boundary |
-| --- | --- |
-| Dependencies | Verify actual migration files, clean ledgers, preserved rows and RF/DC. Check NATS data formats, storage, stream/consumer configuration and retained fixes. Stop on an unknown result. |
-| OpenBao | Review plugin bridge and catalog-refresh ordering. Preserve Raft identity, mounts, credentials and JWT behavior. Rotate members only after matching current evidence passes. |
-| Core | Verify data and JWT postconditions before consumers start. Recheck ingress admission ordering against actual selected packages. Preserve route and workload identities. |
-| Compute | Keep original cluster IDs and registrations. After compute-one, verify original/new invocations, tasks and secret injection on both versions. Stop before compute-two on failure. |
-| Observability | Retain source Observability during earlier actions. Apply target Observability only after core/compute acceptance. Verify storage, routing, monitoring, logs and traces on all retained clusters. |
-| Acceptance | Verify exact final stack selections, original/new workloads, data, credentials and topology. Resume callers only after current matching evidence passes. |
+Update compute clusters with their original registrations.
+Final umbrella 1.1.1 selects Observability 1.1.0.
+The guide's optional retention of Observability 1.0.0 is a separately documented profile with limitations.
+It does not change the selected umbrella manifest.
 
-Use immutable source exports and explicit kubeconfig/context arguments for each native Helmfile stage.
-Keep intermediate source Observability directories separate from the final target assembly.
-Do not apply a final sibling directory early or edit an exported release to make a stage pass.
-The [historical native commands](https://github.com/dsx-ai-factory/nvcf/blob/aa1270cdbe356845d9d873d9424231b17be84c5b/docs/dev/upgrade-transitions.md#native-commands-for-the-scoped-laboratory-sequence)
-document the previous stack-only profile. Revalidate them before using them with either current candidate.
+## Acceptance boundary
 
-## Artifact and migration review
+Use the [lab commands](../../tools/ncp-local-cluster/upgrade-lab/README.md)
+to fetch and audit immutable inputs. Rebuild reports and their provenance after a lock or contract change.
+Old checkpoints cannot establish acceptance for changed identities.
 
-The second route contains 12 backward inventory selections, including optional entries.
-Determine applicability from effective values and rendered manifests.
-Applicable regressions require artifact compatibility, retained-fix and runtime evidence before the affected action.
-Unknown applicability also blocks that action.
-
-- Compare Cassandra migration images 0.17.6, 0.17.8 and 0.19.4.
-  Review historical init files separately from explicit upgrades. Do not replay init SQL against a live ledger.
-- Verify SIS task availability in actual 0.7.2, 0.7.7 and 0.8.5 images.
-  Complete required source repairs before backup. Preserve null-only partial-repair safeguards.
-- Compare OpenBao server 2.6.2-nv-1.3.4, 2.6.3-nv-1.3.9 and 2.6.3-nv-1.3.7.
-  Verify selected migration helpers, plugin bytes, catalog entries, mounts, Raft failover and old/new JWTs.
-  Earlier plugin equality checks omit 2.6.3-nv-1.3.9.
-- Review the NATS server 2.14.9 to 2.14.6 and reloader 0.25.0 to 0.24.0 regressions.
-  Check storage formats, stream/consumer semantics, configuration reload and recovery.
-- Review cert-manager chart 0.2.0 to 0.1.0 and image v1.20.5 to v1.20.2 regressions.
-  Check CRDs, webhooks, certificates and retained fixes.
-- Review removed migration consumers, the UI migration helper and receipt helper.
-- Apply the separate optional Dynamo reloader rule from the second contract.
-  Disabled defaults do not establish absence. Require values and renders before any applicability decision.
-
-Read the [runtime prerequisites](../../tools/ncp-local-cluster/upgrade-lab/transitions/runtime-prerequisites.md)
-for historical helper, callback, task-completion and admission findings.
-Those observations remain useful review inputs. They do not establish behavior for stack 1.0.10.
-Do not silently change released manifests to remove an artifact regression.
-
-## Recovery and measurement
-
-Test interruptions separately at dependency/migration, OpenBao, core, compute-one and Observability boundaries.
-Record partial state and revalidate current postconditions before continuation.
-Never replay an unknown migration result.
-Bind evidence to the current contract, lock, run, artifact digests, Job/Pod identities and data epoch.
-A changed contract, restore or replaced Job invalidates earlier completion evidence until checks pass again.
-After an irreversible data boundary, restore the tested consistent backup and verify original data and workloads.
-
-Use the [measurement procedure](../../tools/ncp-local-cluster/upgrade-lab/transitions/manual-measurement.md).
-Measure invocation success/outages, caller pauses, duration, hands-on time, commands, edits, decisions and recovery interventions.
-Compare equivalent inputs with a measured manual baseline. Report unmeasured values explicitly.
-There is no universal maintenance-window target or zero-downtime promise.
-
-Single-member installations, HA conversion, multi-DC Cassandra, Argo CD, automatic multi-hop and physical GPU qualification remain outside this rehearsal.
-Cross-host and stateless callback HA need separate qualification.
-
-```mermaid
-flowchart TD
-  A[Pinned release assets or explicit legacy baseline] --> B[Verify identities and review artifact regressions]
-  B --> C[Fresh HA source workload baseline]
-  C --> P[Pause callers, drain and pause affected writers]
-  P --> H[Source data completion gate]
-  H --> I[Consistent backup and isolated restore]
-  I --> D[Apply reviewed sequence or authorized diagnostic action]
-  D --> E[Data, JWT, mixed-fleet and final acceptance]
-  D --> F[Stop on failed or unknown condition]
-  F --> G[Revalidate state or restore consistent backup]
-```
-
-## Historical evidence
-
-The [previous rehearsal](https://github.com/dsx-ai-factory/nvcf/blob/aa1270cdbe356845d9d873d9424231b17be84c5b/tools/ncp-local-cluster/upgrade-lab/transitions/README.md#scoped-rehearsal-results)
-used control stacks 1.0.1 to 1.0.4 and 1.0.4 to 1.1.5.
-Its artifact inspections, restore checks and workload results retain their original identities.
-They do not qualify these umbrella routes, which select control stack 1.0.10.
-New live upgrade, HA, mixed-fleet, recovery and measurement evidence remains required.
+Review planner inputs and dependency contracts under Phase 1.
+Keep planner parity and WorkloadGate tests separate from a complete upgrade claim.
+Execution, stateful rotation, resume, recovery rehearsals and operator-effort comparisons require separate planning.

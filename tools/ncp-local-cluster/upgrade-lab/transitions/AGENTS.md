@@ -1,11 +1,11 @@
 # Lab upgrade transition contracts
 
-These lab contracts describe unqualified umbrella upgrade candidates.
-Resolve 1.0.4 and 1.1.0 through their pinned released manifests.
+These schema 2 contracts describe unqualified lab candidates.
+Resolve umbrella 1.0.4 and 1.1.1 through pinned released manifests.
 Version 1.0.1 is a legacy baseline without an umbrella manifest.
 Keep released manifests and original inventories immutable.
-Keep historical stack-only evidence bound to its original identities.
-Do not reuse its qualification for a different manifest selection.
+Bind reports to the current lock and contract digests.
+Published guide evidence does not qualify this lab profile or gate integration.
 
 Validate from the repository root:
 
@@ -16,4 +16,3 @@ git diff --check
 ```
 
 Keep reports public-safe. Store credentials, raw output and backups outside the repository.
-Qualification requires runtime evidence for the exact artifacts, configuration and topology.
