@@ -110,7 +110,6 @@ the rationale.
 - `helm` >= 3.12
 - [Go](https://go.dev/doc/install) >= 1.24.0 (required to build `nvcf-cli`)
 - `helmfile` >= 1.1.0, < 1.2.0
-- `kustomize` on `PATH` for the `control` and `all` observability profiles
 - `helm-diff` plugin:
   `helm plugin install https://github.com/databus23/helm-diff`
 - An NGC API key with access to the NVCF chart and image registry.

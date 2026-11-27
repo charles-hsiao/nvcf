@@ -67,7 +67,6 @@ The following tools must be installed on your deployment machine:
 - `kubectl`
 - `helm` >= 3.12
 - `helmfile` >= 1.1.0 (recommended: `1.1.x`)
-- `kustomize` on `PATH` for the `control` and `all` observability profiles
 - `helm-diff` plugin >=3.11
 
 <Warning>
@@ -360,6 +359,13 @@ The self-managed control-plane stack defaults to
 `observability.profile: control`. This installs the shared metrics components,
 VictoriaMetrics, State Metrics, and the Function Autoscaler. Set the
 VictoriaMetrics storage class for the target cluster.
+
+The `control` and `all` profiles append a collector peer through the
+state-metrics chart's `stateMetrics.networkPolicy.additionalIngressPeers` value. The peer
+combines `observability.namespace` with the collector Pod identity from
+`collector.collectorName`. Existing peers, metrics ports, and egress rules
+remain unchanged. Entries in `stateMetrics.networkPolicy.additionalIngressPeers`
+are preserved. Set `stateMetrics.networkPolicy.enabled: false` to omit the policy.
 
 To use a customer-managed backend or change component ownership, see
 [Observability Configuration](../observability/observability.md). For autoscaler health and
