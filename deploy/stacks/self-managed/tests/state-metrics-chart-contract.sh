@@ -38,6 +38,7 @@ printf '{}\n' >"$environment_file"
 cp "$test_stack_dir/secrets/secrets.yaml.template" "$secrets_file"
 
 state_metrics_values="$work_dir/state-metrics-values.yaml"
+# Token and volume assertions do not need collector chart patching.
 HELMFILE_ENV="$environment_name" \
   HELMFILE_CACHE_HOME="$work_dir/helmfile-cache" \
   helmfile \
@@ -47,7 +48,7 @@ HELMFILE_ENV="$environment_name" \
     --state-values-set ingress.gatewayApi.gateways.shared.namespace=envoy-gateway-system \
     --state-values-set ingress.gatewayApi.gateways.grpc.name=grpc-gw \
     --state-values-set ingress.gatewayApi.gateways.grpc.namespace=envoy-gateway-system \
-    --state-values-set observability.profile=control \
+    --state-values-set observability.profile=disabled \
     --selector name=state-metrics \
     write-values \
     --output-file-template "$state_metrics_values" >/dev/null

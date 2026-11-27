@@ -67,6 +67,7 @@ The following tools must be installed on your deployment machine:
 - `kubectl`
 - `helm` >= 3.12
 - `helmfile` >= 1.1.0 (recommended: `1.1.x`)
+- `kustomize` on `PATH` for the `control` and `all` observability profiles
 - `helm-diff` plugin >=3.11
 
 <Warning>

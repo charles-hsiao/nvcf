@@ -11,6 +11,8 @@ environments:
 {{- fail (printf "observability.profile must be disabled, control, compute, or all, got %q" $observabilityProfile) }}
 {{- end }}
 {{- $functionAutoscalerEnabled := or (eq $observabilityProfile "control") (eq $observabilityProfile "all") }}
+{{- $collectorNamespace := dig "observability" "namespace" "monitoring" .Values }}
+{{- $collectorName := dig "collector" "collectorName" "nvcf-observability" .Values }}
 {{- if and $functionAutoscalerEnabled (not (dig "stateMetrics" "enabled" false .Values)) }}
 {{- fail "function-autoscaler requires stateMetrics.enabled=true for control and all observability profiles" }}
 {{- end }}
@@ -68,6 +70,27 @@ releases:
     condition: stateMetrics.enabled # From global.yaml.gotmpl or env overrides
     inherit:
       - template: service
+    {{- if $functionAutoscalerEnabled }}
+    # The published chart permits only same-namespace scrapers. Keep that rule
+    # and admit the shared collector from its configured namespace.
+    jsonPatches:
+      - target:
+          group: networking.k8s.io
+          version: v1
+          kind: NetworkPolicy
+          labelSelector: app.kubernetes.io/instance=state-metrics
+        patch:
+          - op: add
+            path: /spec/ingress/0/from/-
+            value:
+              namespaceSelector:
+                matchLabels:
+                  kubernetes.io/metadata.name: {{ $collectorNamespace | quote }}
+              podSelector:
+                matchLabels:
+                  app.kubernetes.io/component: opentelemetry-collector
+                  app.kubernetes.io/instance: {{ printf "%s.%s" $collectorNamespace $collectorName | quote }}
+    {{- end }}
     # When enabled, this service will export realtime function information that can be
     # scraped by a Prometheus ServiceMonitor
 

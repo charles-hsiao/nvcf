@@ -57,11 +57,12 @@ cp -R "$stack_dir" "$test_stack_dir"
 cp "$test_stack_dir/secrets/secrets.yaml.template" \
   "$test_stack_dir/secrets/base-secrets.yaml"
 
+# Keep this values-only resource check independent of collector chart patching.
 HELMFILE_ENV=base HELMFILE_CACHE_HOME="$work_dir/helmfile-cache" helmfile \
   --file "$test_stack_dir/helmfile.d/03-observability.yaml.gotmpl" \
   --environment default \
   "${state_values[@]}" \
-  --state-values-set observability.profile=control \
+  --state-values-set observability.profile=disabled \
   --state-values-set-string stateMetrics.resources.requests.cpu=100m \
   --state-values-set-string stateMetrics.resources.requests.memory=128Mi \
   --state-values-set-string stateMetrics.resources.limits.cpu=500m \

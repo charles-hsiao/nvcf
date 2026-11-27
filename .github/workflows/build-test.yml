@@ -110,12 +110,14 @@ jobs:
       # self-managed stack relies on, so stay on v1.1.x. deploy/stacks
       # requires helm v3.x. check-helm-charts reads its chart values map with
       # yq v4 (mikefarah).
-      - name: Install helm, helmfile and yq (pinned, checksum-verified)
+      - name: Install helm, helmfile, kustomize and yq (pinned, checksum-verified)
         env:
           HELM_VERSION: "3.21.4"
           HELM_SHA256: "61f88ab166748cb19604d7884cb100ae9ccb13804ddeb98e08af167eacbb6a14"
           HELMFILE_VERSION: "1.1.9"
           HELMFILE_SHA256: "ee71196bb12460905b8cbe0ef67b28db51ef681b777cc212d8c0956475b51905"
+          KUSTOMIZE_VERSION: "5.7.1"
+          KUSTOMIZE_SHA256: "ea375e7372f9aa029129d4b2d16c66b7750b7f1213c4f66f910d981c895818d8"
           YQ_VERSION: "4.47.1"
           YQ_SHA256: "0fb28c6680193c41b364193d0c0fc4a03177aecde51cfc04d506b1517158c2fb"
         run: |
@@ -131,13 +133,18 @@ jobs:
           echo "${HELMFILE_SHA256}  helmfile.tar.gz" | sha256sum -c -
           tar xzf helmfile.tar.gz helmfile
 
+          curl -sSL --retry 3 -o kustomize.tar.gz \
+            "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
+          echo "${KUSTOMIZE_SHA256}  kustomize.tar.gz" | sha256sum -c -
+          tar xzf kustomize.tar.gz kustomize
+
           curl -sSL --retry 3 -o yq \
             "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64"
           echo "${YQ_SHA256}  yq" | sha256sum -c -
           chmod +x yq
 
           mkdir -p "${RUNNER_TEMP}/bin"
-          mv linux-amd64/helm helmfile yq "${RUNNER_TEMP}/bin/"
+          mv linux-amd64/helm helmfile kustomize yq "${RUNNER_TEMP}/bin/"
           echo "${RUNNER_TEMP}/bin" >> "${GITHUB_PATH}"
 
       - name: Check tool versions
@@ -145,6 +152,7 @@ jobs:
           set -euo pipefail
           helm version --short
           helmfile --version
+          kustomize version
           yq --version
 
       - name: Test the chart mapping guard
